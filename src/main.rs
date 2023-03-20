@@ -32,6 +32,8 @@ impl Store {
     
 }
 
+// Adding the Clone trait which we use in the 
+// get_questions function further down
 #[derive(Debug, Deserialize, Serialize, Clone)]
 struct Question {
     id: QuestionId,
