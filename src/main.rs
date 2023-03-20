@@ -1,36 +1,14 @@
-use std::collections::HashMap;
-use std::sync::Arc;
-use tokio::sync::RwLock;
+use std::{sync::Arc, collections::HashMap};
+use serde::{Deserialize, Serialize};
 use warp::{
-    http::Method,
-    filters::{
-        cors::CorsForbidden,
-        body::BodyDeserializeError
-    },
+    filters::{cors::CorsForbidden, body::BodyDeserializeError},
     reject::Reject,
     Filter, Rejection, Reply,
-    http::StatusCode
+    http::StatusCode,
+    http::Method
 };
-use serde::{Deserialize, Serialize};
+use tokio::sync::RwLock;
 
-#[derive(Clone)]
-struct Store {
-    questions: Arc<RwLock<HashMap<QuestionId, Question>>>,
-}
-
-impl Store {
-    fn new() -> Self {
-        Store {
-            questions: Arc::new(RwLock::new(Self::init())),
-        }
-    }
-
-    fn init() -> HashMap<QuestionId, Question> {
-        let file = include_str!("../questions.json");
-        serde_json::from_str(file).expect("Can't read questions.json")
-    }
-    
-}
 
 // Adding the Clone trait which we use in the 
 // get_questions function further down
@@ -45,10 +23,40 @@ struct Question {
 #[derive(Debug, Deserialize, Serialize, Eq, Hash, Clone, PartialEq)]
 struct QuestionId(String);
 
+#[derive(Debug, Deserialize, Serialize, Eq, Hash, Clone, PartialEq)]
+struct AnswerId(String);
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+struct Answer {
+    id: AnswerId,
+    content: String,
+    question_id: QuestionId,
+}
+
 #[derive(Debug)]
 struct Pagination {
     start: usize,
     end: usize,
+}
+
+#[derive(Clone)]
+struct Store {
+    questions: Arc<RwLock<HashMap<QuestionId, Question>>>,
+    answers: Arc<RwLock<HashMap<AnswerId, Answer>>>,
+}
+
+impl Store {
+    fn new() -> Self {
+        Store {
+            questions: Arc::new(RwLock::new(Self::init())),
+            answers: Arc::new(RwLock::new(HashMap::new())),
+        }
+    }
+
+    fn init() -> HashMap<QuestionId, Question> {
+        let file = include_str!("../questions.json");
+        serde_json::from_str(file).expect("Can't read questions.json")
+    }   
 }
 
 #[derive(Debug)]
@@ -99,13 +107,7 @@ async fn get_questions(
 ) -> Result<impl warp::Reply, warp::Rejection> {
     if !params.is_empty() {
         let pagination = extraction_pagination(params)?;
-        let res: Vec<Question> = store
-            .questions
-            .read()
-            .await
-            .values()
-            .cloned()
-            .collect();
+        let res: Vec<Question> = store.questions.read().await.values().cloned().collect();
         let res = &res[pagination.start..pagination.end];
         Ok(warp::reply::json(&res))
     } else {
@@ -120,10 +122,7 @@ async fn add_question(
 ) -> Result<impl warp::Reply, warp::Rejection> {
     store.questions.write().await.insert(question.id.clone(), question);
 
-    Ok(warp::reply::with_status(
-        "Question added",
-        StatusCode::OK,
-    ))
+    Ok(warp::reply::with_status("Question added", StatusCode::OK))
 }
 
 async fn update_question(
@@ -136,10 +135,7 @@ async fn update_question(
         None => return Err(warp::reject::custom(Error::QuestionNotFound)),
     }
 
-    Ok(warp::reply::with_status(
-        "Question updated",
-        StatusCode::OK,
-    ))
+    Ok(warp::reply::with_status("Question updated", StatusCode::OK))
 }
 
 async fn delete_question(
@@ -148,15 +144,27 @@ async fn delete_question(
 ) -> Result<impl warp::Reply, warp::Rejection> {
     match store.questions.write().await.remove(&QuestionId(id)) {
         Some(_) => {
-            return Ok(
-                warp::reply::with_status(
-                    "Question deleted",
-                    StatusCode::OK,
-                )
-            )
+            return Ok(warp::reply::with_status("Question deleted", StatusCode::OK))
         },
         None => return Err(warp::reject::custom(Error::QuestionNotFound)),
     }
+}
+
+async fn add_answer(
+    store: Store,
+    params: HashMap<String, String>,
+) -> Result<impl warp::Reply, warp::Rejection> {
+    let answer = Answer {
+        id: AnswerId("1".to_string()),
+        content: params.get("content").unwrap().to_string(),
+        question_id: QuestionId(
+            params.get("questionId").unwrap().to_string()
+        ),
+    };
+
+    store.answers.write().await.insert(answer.id.clone(), answer);
+
+    Ok(warp::reply::with_status("Answer added", StatusCode::OK))
 }
 
 async fn return_error(r: Rejection) -> Result<impl Reply, Rejection> {
@@ -222,9 +230,17 @@ async fn main() {
         .and(store_filter.clone())
         .and_then(delete_question);
 
+    let add_answer = warp::post()
+        .and(warp::path("questions"))
+        .and(warp::path::end())
+        .and(store_filter.clone())
+        .and(warp::body::form())
+        .and_then(add_answer);
+
     let routes = get_questions
         .or(add_question)
         .or(update_question)
+        .or(add_answer)
         .or(delete_question)
         .with(cors)
         .recover(return_error);

@@ -50,4 +50,3 @@ curl -L \
   'http://localhost:3030/questions/1' \
   -H 'Content-type: application/json'
 ```
-
