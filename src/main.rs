@@ -2,14 +2,13 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use warp::{
-    Filter,
     http::Method,
     filters::{
         cors::CorsForbidden,
+        body::BodyDeserializeError
     },
     reject::Reject,
-    Rejection, 
-    Reply, 
+    Filter, Rejection, Reply,
     http::StatusCode
 };
 use serde::{Deserialize, Serialize};
@@ -56,6 +55,7 @@ struct Pagination {
 enum Error {
     ParseError(std::num::ParseIntError),
     MissingParameters,
+    QuestionNotFound,
 }
 
 impl std::fmt::Display for Error {
@@ -65,6 +65,7 @@ impl std::fmt::Display for Error {
                 write!(f, "Cannot parse parameter: {}", err)
             },
             Error::MissingParameters => write!(f, "Missing parameter"),
+            Error::QuestionNotFound => write!(f, "Question not found"),
         }
     }
 }
@@ -125,6 +126,22 @@ async fn add_question(
     ))
 }
 
+async fn update_question(
+    id: String,
+    store: Store,
+    question: Question
+) -> Result<impl warp::Reply, warp::Rejection> {
+    match store.questions.write().await.get_mut(&QuestionId(id)) {
+        Some(q) => *q = question,
+        None => return Err(warp::reject::custom(Error::QuestionNotFound)),
+    }
+
+    Ok(warp::reply::with_status(
+        "Question updated",
+        StatusCode::OK,
+    ))
+}
+
 async fn return_error(r: Rejection) -> Result<impl Reply, Rejection> {
     if let Some(error) = r.find::<Error>() {
         Ok(warp::reply::with_status(
@@ -136,9 +153,14 @@ async fn return_error(r: Rejection) -> Result<impl Reply, Rejection> {
             error.to_string(),
             StatusCode::FORBIDDEN,
         ))
+    } else if let Some(error) = r.find::<BodyDeserializeError>() {
+        Ok(warp::reply::with_status(
+            error.to_string(),
+            StatusCode::UNPROCESSABLE_ENTITY,
+        ))
     } else {
         Ok(warp::reply::with_status(
-            "Route not found".to_string(),
+            "Route not found!".to_string(),
             StatusCode::NOT_FOUND,
         ))
     }
@@ -168,8 +190,17 @@ async fn main() {
         .and(warp::body::json())
         .and_then(add_question);
 
+    let update_question = warp::put()
+        .and(warp::path("questions"))
+        .and(warp::path::param::<String>())
+        .and(warp::path::end())
+        .and(store_filter.clone())
+        .and(warp::body::json())
+        .and_then(update_question);
+
     let routes = get_questions
         .or(add_question)
+        .or(update_question)
         .with(cors)
         .recover(return_error);
 

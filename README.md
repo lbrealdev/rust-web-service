@@ -30,3 +30,11 @@ curl -L \
     -d '{"title": "New question", "content": "How does this work again?"}'
 ```
 
+```shell
+curl -L \
+  -X PUT \
+  'http://localhost:3030/questions' \
+  -H 'Content-type: application/json' \
+  -d '{"id": "1", "title": "New question", "content": "How does this work again?"}'
+```
+
