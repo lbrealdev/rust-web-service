@@ -43,4 +43,11 @@ curl -L \
     }'
 ```
 
+### Delete a question
+```shell
+curl -L \
+  -X DELETE \
+  'http://localhost:3030/questions/1' \
+  -H 'Content-type: application/json'
+```
 
