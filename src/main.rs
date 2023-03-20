@@ -45,7 +45,11 @@ struct Question {
 #[derive(Debug, Deserialize, Serialize, Eq, Hash, Clone, PartialEq)]
 struct QuestionId(String);
 
-async fn get_questions(store: Store) -> Result<impl Reply, Rejection> {
+async fn get_questions(
+    params: HashMap<String, String>,
+    store: Store
+) -> Result<impl warp::Reply, warp::Rejection> {
+    println!("{:?}", params);
     let res: Vec<Question> = store.questions.values().cloned().collect();
 
     Ok(warp::reply::json(&res))
@@ -78,9 +82,9 @@ async fn main() {
     let get_questions = warp::get()
         .and(warp::path("questions"))
         .and(warp::path::end())
+        .and(warp::query())
         .and(store_filter)
-        .and_then(get_questions)
-        .recover(return_error);
+        .and_then(get_questions);
 
     let routes = get_questions.with(cors);
 
