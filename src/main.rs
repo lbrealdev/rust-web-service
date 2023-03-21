@@ -231,7 +231,7 @@ async fn main() {
         .and_then(delete_question);
 
     let add_answer = warp::post()
-        .and(warp::path("questions"))
+        .and(warp::path("answers"))
         .and(warp::path::end())
         .and(store_filter.clone())
         .and(warp::body::form())
