@@ -62,7 +62,7 @@ impl Store {
 
 fn extraction_pagination(
     params: HashMap<String, String>
-) -> Result<Pagination, error::error::Error> {
+) -> Result<Pagination, error::Error> {
     if params.contains_key("start") && params.contains_key("end") {
         return Ok(Pagination {
             start: params
