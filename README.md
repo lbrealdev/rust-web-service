@@ -42,7 +42,7 @@ curl -L \
         "id": "2",
         "title": "White Collar Criminal",
         "content": "Midnite"
-    }'
+     }'
 ```
 
 ### Delete a question

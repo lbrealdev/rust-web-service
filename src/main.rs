@@ -1,13 +1,13 @@
 use std::{sync::Arc, collections::HashMap};
 use serde::{Deserialize, Serialize};
 use warp::{
-    filters::{cors::CorsForbidden, body::BodyDeserializeError},
-    reject::Reject,
-    Filter, Rejection, Reply,
+    Filter,
     http::StatusCode,
     http::Method
 };
 use tokio::sync::RwLock;
+
+mod error;
 
 
 // Adding the Clone trait which we use in the 
@@ -59,46 +59,26 @@ impl Store {
     }   
 }
 
-#[derive(Debug)]
-enum Error {
-    ParseError(std::num::ParseIntError),
-    MissingParameters,
-    QuestionNotFound,
-}
-
-impl std::fmt::Display for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        match *self {
-            Error::ParseError(ref err) => {
-                write!(f, "Cannot parse parameter: {}", err)
-            },
-            Error::MissingParameters => write!(f, "Missing parameter"),
-            Error::QuestionNotFound => write!(f, "Question not found"),
-        }
-    }
-}
-
-impl Reject for Error {}
 
 fn extraction_pagination(
     params: HashMap<String, String>
-) -> Result<Pagination, Error> {
+) -> Result<Pagination, error::error::Error> {
     if params.contains_key("start") && params.contains_key("end") {
         return Ok(Pagination {
             start: params
                 .get("start")
                 .unwrap()
                 .parse::<usize>()
-                .map_err(Error::ParseError)?,
+                .map_err(error::Error::ParseError)?,
             end: params
                 .get("end")
                 .unwrap()
                 .parse::<usize>()
-                .map_err(Error::ParseError)?,
+                .map_err(error::Error::ParseError)?,
         });
     }
 
-    Err(Error::MissingParameters)
+    Err(error::Error::MissingParameters)
 }
 
 async fn get_questions(
@@ -132,7 +112,7 @@ async fn update_question(
 ) -> Result<impl warp::Reply, warp::Rejection> {
     match store.questions.write().await.get_mut(&QuestionId(id)) {
         Some(q) => *q = question,
-        None => return Err(warp::reject::custom(Error::QuestionNotFound)),
+        None => return Err(warp::reject::custom(error::Error::QuestionNotFound)),
     }
 
     Ok(warp::reply::with_status("Question updated", StatusCode::OK))
@@ -146,7 +126,7 @@ async fn delete_question(
         Some(_) => {
             return Ok(warp::reply::with_status("Question deleted", StatusCode::OK))
         },
-        None => return Err(warp::reject::custom(Error::QuestionNotFound)),
+        None => return Err(warp::reject::custom(error::Error::QuestionNotFound)),
     }
 }
 
@@ -165,30 +145,6 @@ async fn add_answer(
     store.answers.write().await.insert(answer.id.clone(), answer);
 
     Ok(warp::reply::with_status("Answer added", StatusCode::OK))
-}
-
-async fn return_error(r: Rejection) -> Result<impl Reply, Rejection> {
-    if let Some(error) = r.find::<Error>() {
-        Ok(warp::reply::with_status(
-            error.to_string(),
-            StatusCode::RANGE_NOT_SATISFIABLE,
-        ))
-    } else if let Some(error) = r.find::<CorsForbidden>() {
-        Ok(warp::reply::with_status(
-            error.to_string(),
-            StatusCode::FORBIDDEN,
-        ))
-    } else if let Some(error) = r.find::<BodyDeserializeError>() {
-        Ok(warp::reply::with_status(
-            error.to_string(),
-            StatusCode::UNPROCESSABLE_ENTITY,
-        ))
-    } else {
-        Ok(warp::reply::with_status(
-            "Route not found!".to_string(),
-            StatusCode::NOT_FOUND,
-        ))
-    }
 }
 
 #[tokio::main]
@@ -243,7 +199,7 @@ async fn main() {
         .or(add_answer)
         .or(delete_question)
         .with(cors)
-        .recover(return_error);
+        .recover(error::return_error);
 
     warp::serve(routes)
         .run(([127, 0, 0, 1], 3030))
