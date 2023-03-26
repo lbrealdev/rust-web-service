@@ -1,19 +1,17 @@
-use std::{sync::Arc, collections::HashMap};
-use serde::{Deserialize, Serialize};
-use warp::{
-    Filter,
-    http::StatusCode,
-    http::Method
-};
-use tokio::sync::RwLock;
-use handle_errors::{Error, return_error};
+#![warn(clippy::all)]
+
 use crate::types::pagination::extraction_pagination;
+use handle_errors::{return_error, Error};
+use serde::{Deserialize, Serialize};
+use std::{collections::HashMap, sync::Arc};
+use tokio::sync::RwLock;
+use warp::{http::Method, http::StatusCode, Filter};
 
 //mod store;
-mod types;
 mod routes;
+mod types;
 
-// Adding the Clone trait which we use in the 
+// Adding the Clone trait which we use in the
 // get_questions function further down
 #[derive(Debug, Deserialize, Serialize, Clone)]
 struct Question {
@@ -53,12 +51,12 @@ impl Store {
     fn init() -> HashMap<QuestionId, Question> {
         let file = include_str!("../questions.json");
         serde_json::from_str(file).expect("Can't read questions.json")
-    }   
+    }
 }
 
 async fn get_questions(
     params: HashMap<String, String>,
-    store: Store
+    store: Store,
 ) -> Result<impl warp::Reply, warp::Rejection> {
     if !params.is_empty() {
         let pagination = extraction_pagination(params)?;
@@ -73,9 +71,13 @@ async fn get_questions(
 
 async fn add_question(
     store: Store,
-    question: Question
+    question: Question,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    store.questions.write().await.insert(question.id.clone(), question);
+    store
+        .questions
+        .write()
+        .await
+        .insert(question.id.clone(), question);
 
     Ok(warp::reply::with_status("Question added", StatusCode::OK))
 }
@@ -83,7 +85,7 @@ async fn add_question(
 async fn update_question(
     id: String,
     store: Store,
-    question: Question
+    question: Question,
 ) -> Result<impl warp::Reply, warp::Rejection> {
     match store.questions.write().await.get_mut(&QuestionId(id)) {
         Some(q) => *q = question,
@@ -93,14 +95,9 @@ async fn update_question(
     Ok(warp::reply::with_status("Question updated", StatusCode::OK))
 }
 
-async fn delete_question(
-    id: String,
-    store: Store,
-) -> Result<impl warp::Reply, warp::Rejection> {
+async fn delete_question(id: String, store: Store) -> Result<impl warp::Reply, warp::Rejection> {
     match store.questions.write().await.remove(&QuestionId(id)) {
-        Some(_) => {
-            return Ok(warp::reply::with_status("Question deleted", StatusCode::OK))
-        },
+        Some(_) => return Ok(warp::reply::with_status("Question deleted", StatusCode::OK)),
         None => return Err(warp::reject::custom(Error::QuestionNotFound)),
     }
 }
@@ -112,12 +109,14 @@ async fn add_answer(
     let answer = Answer {
         id: AnswerId("1".to_string()),
         content: params.get("content").unwrap().to_string(),
-        question_id: QuestionId(
-            params.get("questionId").unwrap().to_string()
-        ),
+        question_id: QuestionId(params.get("questionId").unwrap().to_string()),
     };
 
-    store.answers.write().await.insert(answer.id.clone(), answer);
+    store
+        .answers
+        .write()
+        .await
+        .insert(answer.id.clone(), answer);
 
     Ok(warp::reply::with_status("Answer added", StatusCode::OK))
 }
@@ -176,7 +175,5 @@ async fn main() {
         .with(cors)
         .recover(return_error);
 
-    warp::serve(routes)
-        .run(([127, 0, 0, 1], 3030))
-        .await;
+    warp::serve(routes).run(([127, 0, 0, 1], 3030)).await;
 }

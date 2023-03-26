@@ -1,6 +1,5 @@
-use std::collections::HashMap;
 use handle_errors::Error;
-
+use std::collections::HashMap;
 
 /// Pagination struct that is getting extracted
 /// from query params
@@ -11,7 +10,6 @@ pub struct Pagination {
     /// The index of the last item that has to be returned
     pub end: usize,
 }
-
 
 /// Extract query parameters from `/questions` route
 /// # Example query
@@ -27,9 +25,7 @@ pub struct Pagination {
 /// assert_eq!(p.start, 1);
 /// assert_eq!(p.end, 10):
 ///```
-pub fn extraction_pagination(
-    params: HashMap<String, String>
-) -> Result<Pagination, Error> {
+pub fn extraction_pagination(params: HashMap<String, String>) -> Result<Pagination, Error> {
     // Could be improved in the future
     if params.contains_key("start") && params.contains_key("end") {
         return Ok(Pagination {
