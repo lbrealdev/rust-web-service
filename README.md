@@ -52,3 +52,18 @@ curl -L \
   'http://localhost:3030/questions/1' \
   -H 'Content-type: application/json'
 ```
+
+Tree project excluding target/ directory:
+```
+tree -I target
+```
+
+
+### Chapter 5
+
+
+Create a new library in Rust:
+```shell
+cargo new handle-errors --lib
+```
+

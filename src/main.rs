@@ -6,9 +6,12 @@ use warp::{
     http::Method
 };
 use tokio::sync::RwLock;
+use handle_errors::{Error, return_error};
+use crate::types::pagination::extraction_pagination;
 
-mod error;
-
+//mod store;
+mod types;
+mod routes;
 
 // Adding the Clone trait which we use in the 
 // get_questions function further down
@@ -33,12 +36,6 @@ struct Answer {
     question_id: QuestionId,
 }
 
-#[derive(Debug)]
-struct Pagination {
-    start: usize,
-    end: usize,
-}
-
 #[derive(Clone)]
 struct Store {
     questions: Arc<RwLock<HashMap<QuestionId, Question>>>,
@@ -57,28 +54,6 @@ impl Store {
         let file = include_str!("../questions.json");
         serde_json::from_str(file).expect("Can't read questions.json")
     }   
-}
-
-
-fn extraction_pagination(
-    params: HashMap<String, String>
-) -> Result<Pagination, error::Error> {
-    if params.contains_key("start") && params.contains_key("end") {
-        return Ok(Pagination {
-            start: params
-                .get("start")
-                .unwrap()
-                .parse::<usize>()
-                .map_err(error::Error::ParseError)?,
-            end: params
-                .get("end")
-                .unwrap()
-                .parse::<usize>()
-                .map_err(error::Error::ParseError)?,
-        });
-    }
-
-    Err(error::Error::MissingParameters)
 }
 
 async fn get_questions(
@@ -112,7 +87,7 @@ async fn update_question(
 ) -> Result<impl warp::Reply, warp::Rejection> {
     match store.questions.write().await.get_mut(&QuestionId(id)) {
         Some(q) => *q = question,
-        None => return Err(warp::reject::custom(error::Error::QuestionNotFound)),
+        None => return Err(warp::reject::custom(Error::QuestionNotFound)),
     }
 
     Ok(warp::reply::with_status("Question updated", StatusCode::OK))
@@ -126,7 +101,7 @@ async fn delete_question(
         Some(_) => {
             return Ok(warp::reply::with_status("Question deleted", StatusCode::OK))
         },
-        None => return Err(warp::reject::custom(error::Error::QuestionNotFound)),
+        None => return Err(warp::reject::custom(Error::QuestionNotFound)),
     }
 }
 
@@ -199,7 +174,7 @@ async fn main() {
         .or(add_answer)
         .or(delete_question)
         .with(cors)
-        .recover(error::return_error);
+        .recover(return_error);
 
     warp::serve(routes)
         .run(([127, 0, 0, 1], 3030))
