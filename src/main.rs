@@ -10,8 +10,8 @@ mod types;
 
 #[tokio::main]
 async fn main() {
-    let log_filter = std::env::var("RUST_LOG")
-        .unwrap_or_else(|_| "web_service=info,warp=error".to_owned());
+    let log_filter =
+        std::env::var("RUST_LOG").unwrap_or_else(|_| "web_service=info,warp=error".to_owned());
 
     let store = store::Store::new();
     let store_filter = warp::any().map(move || store.clone());
@@ -42,8 +42,8 @@ async fn main() {
                 method = %info.method(),
                 path = %info.method(),
                 id = %uuid::Uuid::new_v4(),
-            )})
-        );
+            )
+        }));
 
     let add_question = warp::post()
         .and(warp::path("questions"))

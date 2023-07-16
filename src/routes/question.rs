@@ -1,6 +1,6 @@
 use std::collections::HashMap;
+use tracing::{info, instrument};
 use warp::http::StatusCode;
-use tracing::{instrument, info};
 
 use crate::store::Store;
 use crate::types::pagination::extraction_pagination;

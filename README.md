@@ -26,7 +26,11 @@ curl "http://localhost:3030/questions?start=1&end=200"
 ```shell
 curl -L -X POST 'http://localhost:3030/questions' \
   -H 'Content-type: application/json' \
-  -d '{"id": "2", "title": "New question", "content": "How does this work again?"}'
+  -d '{
+        "id": "2",
+        "title": "New question",
+        "content": "How does this work again?"
+      }'
 ```
 
 ### Update a question
@@ -37,7 +41,7 @@ curl -L -X PUT 'http://localhost:3030/questions/2' \
         "id": "2",
         "title": "White Collar Criminal",
         "content": "Midnite"
-     }'
+      }'
 ```
 
 ### Delete a question
@@ -46,7 +50,7 @@ curl -L -X DELETE 'http://localhost:3030/questions/1' -H 'Content-type: applicat
 ```
 
 Tree project excluding target/ directory:
-```
+```shell
 tree -I target
 ```
 
@@ -63,7 +67,7 @@ cargo new handle-errors --lib
 
 ### Chapter 6
 
-```
+```shell
 RUST_LOG=info cargo run
 
 RUST_LOG=debug cargo run
@@ -71,4 +75,6 @@ RUST_LOG=debug cargo run
 RUST_LOG=info cargo run 2>logs.txt
 ```
 
+```shell
 curl --location --request GET 'localhost:3030/questions'
+```
