@@ -15,12 +15,9 @@ async fn main() {
     log::info!("This is info!");
     log::warn!("This is a warning!");
 
-    let id = uuid::Uuid::new_v4();
-
-    let log = warp::log::custom(move |info| {
+    let log = warp::log::custom(|info| {
         log::info!(
-            "Request id: {} {} {} {} {:?} from {} with {:?}",
-            id,
+            "{} {} {} {:?} from {} with {:?}",
             info.method(),
             info.path(),
             info.status(),
@@ -33,7 +30,7 @@ async fn main() {
     let store = store::Store::new();
     let store_filter = warp::any().map(move || store.clone());
 
-    let id_filter = warp::any().map(move || id.to_string());
+    let id_filter = warp::any().map(|| uuid::Uuid::new_v4().to_string());
 
     let cors = warp::cors()
         .allow_any_origin()

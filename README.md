@@ -59,3 +59,16 @@ Create a new library in Rust:
 cargo new handle-errors --lib
 ```
 
+
+
+### Chapter 6
+
+```
+RUST_LOG=info cargo run
+
+RUST_LOG=debug cargo run
+
+RUST_LOG=info cargo run 2>logs.txt
+```
+
+curl --location --request GET 'localhost:3030/questions'
