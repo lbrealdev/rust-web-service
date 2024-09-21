@@ -1,6 +1,6 @@
-# Rust web service - Warp
+# Rust web service
 
-
+A rust web service using warp and tokio.
 
 ## Use
 
@@ -15,7 +15,6 @@ http://localhost:3030
 
 http://localhost:3030/questions
 ```
-
 
 ### Get questions
 ```shell
@@ -57,13 +56,10 @@ tree -I target
 
 ### Chapter 5
 
-
 Create a new library in Rust:
 ```shell
 cargo new handle-errors --lib
 ```
-
-
 
 ### Chapter 6
 
@@ -76,5 +72,9 @@ RUST_LOG=info cargo run 2>logs.txt
 ```
 
 ```shell
-curl --location --request GET 'localhost:3030/questions'
+curl -L -X GET 'localhost:3030/questions'
 ```
+
+### Chapter 7
+
+// to do
