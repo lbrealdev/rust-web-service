@@ -6,9 +6,9 @@ use std::collections::HashMap;
 #[derive(Debug)]
 pub struct Pagination {
     /// The index of the first item that has to be returned
-    pub start: usize,
+    pub limit: usize,
     /// The index of the last item that has to be returned
-    pub end: usize,
+    pub offset: usize,
 }
 
 /// Extract query parameters from `/questions` route

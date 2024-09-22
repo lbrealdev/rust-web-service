@@ -1,10 +1,12 @@
 use std::collections::HashMap;
+use std::f32::consts::E;
+use sqlx::postgres::PgRow;
 use tracing::{event, info, instrument, Level};
 use warp::http::StatusCode;
 
 use crate::store::Store;
 use crate::types::pagination::{extraction_pagination, Pagination};
-use crate::types::question::{Question, QuestionId};
+use crate::types::question::{Question, QuestionId, NewQuestion};
 use handle_errors::Error;
 
 #[instrument]
@@ -40,36 +42,37 @@ pub async fn get_questions(
 
 pub async fn add_question(
     store: Store,
-    question: Question,
+    new_question: NewQuestion,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    store
-        .questions
-        .write()
-        .await
-        .insert(question.id.clone(), question);
-
+    if let err(e) = store.add_question(new_question).await {
+        return Err(warp::reject::custom(Error::DatabaseQueryError(e)));
+    }
     Ok(warp::reply::with_status("Question added", StatusCode::OK))
 }
 
 pub async fn update_question(
-    id: String,
+    id: i32,
     store: Store,
     question: Question,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    match store.questions.write().await.get_mut(&QuestionId(id)) {
-        Some(q) => *q = question,
-        None => return Err(warp::reject::custom(Error::QuestionNotFound)),
-    }
+    let res = match store.update_question(question, id).await {
+        Ok(res) => res,
+        Err(e) => return Err(warp::reject::custom(Error::DatabaseQueryError(e))),
+    };
 
-    Ok(warp::reply::with_status("Question updated", StatusCode::OK))
+    Ok(warp::reply::json(&res))
 }
 
 pub async fn delete_question(
-    id: String,
+    id: i32,
     store: Store,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    match store.questions.write().await.remove(&QuestionId(id)) {
-        Some(_) => Ok(warp::reply::with_status("Question deleted", StatusCode::OK)),
-        None => Err(warp::reject::custom(Error::QuestionNotFound)),
+    if let Err(e) = store.delete_question(id).await {
+        return Err(warp::reject::custom(Error::DatabaseQueryError(e)));
     }
+
+    Ok(warp::reply::with_status(
+        format!("Question {} delete", id),
+        StatusCode::OK)
+    )
 }
