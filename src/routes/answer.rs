@@ -1,10 +1,7 @@
 use warp::http::StatusCode;
 
 use crate::store::Store;
-use crate::types::{
-    answer::{Answer, AnswerId, NewAnswer},
-    question::QuestionId,
-};
+use crate::types::answer::NewAnswer;
 
 pub async fn add_answer(
     store: Store,

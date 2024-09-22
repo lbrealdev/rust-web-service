@@ -5,14 +5,13 @@ use warp::{
     http::StatusCode
 };
 
-use sqlx::error::Error as SqlxError;
+use tracing::{event, Level, instrument};
 
 #[derive(Debug)]
 pub enum Error {
     ParseError(std::num::ParseIntError),
     MissingParameters,
-    QuestionNotFound,
-    DatabaseQueryError(SqlxError),
+    DatabaseQueryError,
 }
 
 impl std::fmt::Display for Error {
@@ -22,9 +21,8 @@ impl std::fmt::Display for Error {
                 write!(f, "Cannot parse parameter: {}", err)
             },
             Error::MissingParameters => write!(f, "Missing parameter"),
-            Error::QuestionNotFound => write!(f, "Question nor found"),
             Error::DatabaseQueryError => {
-                write!(f, "Query could not be executed", e)
+                write!(f, "Cannot update, invalid data.")
             },
         }
     }
@@ -32,25 +30,34 @@ impl std::fmt::Display for Error {
 
 impl Reject for Error {}
 
-pub async fn return_error(r: Rejection)
-    -> Result<impl Reply, Rejection> {
-    println!("{:?}", r);
-    if let Some(error) = r.find::<Error>() {
+#[instrument]
+pub async fn return_error(r: Rejection) -> Result<impl Reply, Rejection> {
+    if let Some(crate::Error::DatabaseQueryError) = r.find() {
+        event!(Level::ERROR, "Database query error");
         Ok(warp::reply::with_status(
-            error.to_string(),
-            StatusCode::RANGE_NOT_SATISFIABLE,
+            crate::Error::DatabaseQueryError.to_string(),
+            StatusCode::UNPROCESSABLE_ENTITY,
         ))
     } else if let Some(error) = r.find::<CorsForbidden>() {
+        event!(Level::ERROR, "CORS forbidden error: {}", error);
         Ok(warp::reply::with_status(
             error.to_string(),
             StatusCode::FORBIDDEN,
         ))
     } else if let Some(error) = r.find::<BodyDeserializeError>() {
+        event!(Level::ERROR, "Cannot deserizalize request body: {}", error);
+        Ok(warp::reply::with_status(
+            error.to_string(),
+            StatusCode::UNPROCESSABLE_ENTITY,
+        ))
+    } else if let Some(error) = r.find::<Error>() {
+        event!(Level::ERROR, "{}", error);
         Ok(warp::reply::with_status(
             error.to_string(),
             StatusCode::UNPROCESSABLE_ENTITY,
         ))
     } else {
+        event!(Level::WARN, "Requested route was not found");
         Ok(warp::reply::with_status(
             "Route not found".to_string(),
             StatusCode::NOT_FOUND,

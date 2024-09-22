@@ -1,8 +1,7 @@
 use sqlx::postgres::{PgPoolOptions, PgPool, PgRow};
-use sqlx::{pool, Row};
+use sqlx::Row;
 
 use handle_errors::Error;
-use crate::routes::{answer, question};
 use crate::types::{
     answer::{Answer, NewAnswer, AnswerId},
     question::{Question, NewQuestion, QuestionId},
@@ -31,7 +30,7 @@ impl Store {
         &self,
         limit: Option<i32>,
         offset: u32
-    ) -> Result<Vec<Question>, sqlx::Error> {
+    ) -> Result<Vec<Question>, Error> {
         match sqlx::query("SELECT * FROM questions LIMIT $1 OFFSET $2")
         .bind(limit)
         .bind(offset)
@@ -54,7 +53,7 @@ impl Store {
     pub async fn add_question(
         &self,
         new_question: NewQuestion
-    ) -> Result<Question, sqlx::Error> {
+    ) -> Result<Question, Error> {
         match sqlx::query(
             "INSERT INTO questions (title, content, tags)
             VALUES ($1, $2, $3)
@@ -67,13 +66,16 @@ impl Store {
             id: QuestionId(row.get("id")),
             title: row.get("title"),
             content: row.get("content"),
-            tags: row.tags("tags"),
+            tags: row.get("tags"),
         })
         .fetch_all(&self.connection)
         .await
         {
             Ok(question) => Ok(question),
-            Err(e) => Err(e),
+            Err(e) => {
+                tracing::event!(tracing::Level::ERROR, "{:?}", e);
+                Err(Error::DatabaseQueryError)
+            },
         }
     }
 
@@ -81,7 +83,7 @@ impl Store {
         &self,
         question: Question,
         question_id: i32,
-    ) -> Result<Question, sqlx::Error> {
+    ) -> Result<Question, Error> {
         match sqlx::query(
             "UPDATE questions
             SET title = $1, content = $2, tags = $3
@@ -101,7 +103,10 @@ impl Store {
         .fetch_one(&self.connection)
         .await {
             Ok(question) => Ok(question),
-            Err(e) => Err(e),
+            Err(e) => {
+                tracing::event!(tracing::Level::ERROR, "{:?}", e);
+                Err(Error::DatabaseQueryError)
+            },
         }
     
         Ok(warp::reply::with_status("Question updated", StatusCode::OK))
@@ -110,13 +115,16 @@ impl Store {
     pub async fn delete_question(
         &self,
         question_id: i32
-    ) -> Result<bool, sqlx::Error> {
+    ) -> Result<bool, Error> {
         match sqlx::query("DELETE FROM questions WHERE id = $1")
         .bind(question_id)
         .execute(&self.connection)
         .await {
             Ok(_) => Ok(true),
-            Err(e) => Err(e),
+            Err(e) => {
+                tracing::event!(tracing::Level::ERROR, "{:?}", e);
+                Err(Error::DatabaseQueryError)
+            },
         }
     }
 
@@ -139,7 +147,7 @@ impl Store {
             Ok(answer) => Ok(answer),
             Err(e) => {
                 tracing::event!(tracing::Level::ERROR, "{:?}", e);
-                Err(Error::DatabaseQueryError(e))
+                Err(Error::DatabaseQueryError)
             },
         }
     }
