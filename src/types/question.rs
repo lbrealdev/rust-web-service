@@ -11,4 +11,12 @@ pub struct Question {
 }
 
 #[derive(Debug, Deserialize, Serialize, Eq, Hash, Clone, PartialEq)]
-pub struct QuestionId(pub String);
+pub struct QuestionId(pub i32);
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct NewQuestion {
+    pub title: String,
+    pub content: String,
+    pub tags: Option<Vec<String>>,
+}
+
