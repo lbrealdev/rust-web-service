@@ -32,6 +32,16 @@ curl -L -X POST 'http://localhost:3030/questions' \
       }'
 ```
 
+### Create a new question - Updated
+```shell
+curl -v -L 'http://localhost:3030/questions' \
+  -H 'Content-type: application/json' \
+  -d '{
+        "title": "test - first question",
+        "content": "How does this work again?"
+      }'
+```
+
 ### Update a question
 ```shell
 curl -L -X PUT 'http://localhost:3030/questions/2' \
