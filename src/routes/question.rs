@@ -1,9 +1,9 @@
 use std::collections::HashMap;
-use tracing::{info, instrument};
+use tracing::{event, info, instrument, Level};
 use warp::http::StatusCode;
 
 use crate::store::Store;
-use crate::types::pagination::extraction_pagination;
+use crate::types::pagination::{extraction_pagination, Pagination};
 use crate::types::question::{Question, QuestionId};
 use handle_errors::Error;
 
@@ -12,17 +12,29 @@ pub async fn get_questions(
     params: HashMap<String, String>,
     store: Store,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    info!("querying questions");
+    event!(target: "web-service", Level::INFO, "querying questions");
+    let mut pagination = Pagination::default();
+
     if !params.is_empty() {
-        let pagination = extraction_pagination(params)?;
-        info!(pagination = true);
+        event!(Level::INFO, pagination = true);
+        pagination = extraction_pagination(params)?;
         let res: Vec<Question> = store.questions.read().await.values().cloned().collect();
         let res = &res[pagination.start..pagination.end];
         Ok(warp::reply::json(&res))
     } else {
-        info!(pagination = false);
-        let res: Vec<Question> = store.questions.read().await.values().cloned().collect();
-        Ok(warp::reply::json(&res))
+
+    info!(pagination = false);
+    let res: Vec<Question> = match store
+        .get_questions(pagination.limit, pagination.offset)
+        .await {
+            Ok(res) => res,
+            Err(e) => {
+                return Err(warp::reject::custom(
+                    Error::DatabaseQueryError(e)
+                ))
+            },
+        };
+        Ok(warp::reply::json(&res))     
     }
 }
 
