@@ -29,7 +29,7 @@ impl Store {
     pub async fn get_questions(
         &self,
         limit: Option<i32>,
-        offset: u32
+        offset: i32
     ) -> Result<Vec<Question>, Error> {
         match sqlx::query("SELECT * FROM questions LIMIT $1 OFFSET $2")
         .bind(limit)
@@ -68,7 +68,7 @@ impl Store {
             content: row.get("content"),
             tags: row.get("tags"),
         })
-        .fetch_all(&self.connection)
+        .fetch_one(&self.connection)
         .await
         {
             Ok(question) => Ok(question),
@@ -108,8 +108,6 @@ impl Store {
                 Err(Error::DatabaseQueryError)
             },
         }
-    
-        Ok(warp::reply::with_status("Question updated", StatusCode::OK))
     }
 
     pub async fn delete_question(

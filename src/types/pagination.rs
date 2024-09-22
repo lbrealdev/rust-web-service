@@ -3,12 +3,12 @@ use std::collections::HashMap;
 
 /// Pagination struct that is getting extracted
 /// from query params
-#[derive(Debug)]
+#[derive(Default, Debug)]
 pub struct Pagination {
     /// The index of the first item that has to be returned
-    pub limit: usize,
+    pub limit: Option<i32>,
     /// The index of the last item that has to be returned
-    pub offset: usize,
+    pub offset: i32,
 }
 
 /// Extract query parameters from `/questions` route
@@ -31,19 +31,17 @@ pub fn extraction_pagination(params: HashMap<String, String>) -> Result<Paginati
     // Could be improved in the future
     if params.contains_key("limit") && params.contains_key("offset") {
         return Ok(Pagination {
-            // Takes the "limit" parameter in the query
-            // and tries to convert it to a number
+            // Takes the "limit" parameter in the query and tries to convert it to a number
             limit: Some(params
                 .get("limit")
                 .unwrap()
-                .parse::<usize>()
+                .parse::<i32>()
                 .map_err(Error::ParseError)?),
-            // Takes the "offset" parameter in the query
-            // and tries to convert it to a number
+            // Takes the "offset" parameter in the query and tries to convert it to a number
             offset: params
                 .get("offset")
                 .unwrap()
-                .parse::<usize>()
+                .parse::<i32>()
                 .map_err(Error::ParseError)?,
         });
     }
