@@ -1,5 +1,3 @@
-use std::fmt::write;
-
 use warp::{
     filters::{cors::CorsForbidden, body::BodyDeserializeError},
     reject::Reject,
@@ -7,14 +5,14 @@ use warp::{
     http::StatusCode
 };
 
-// use sqlx::error::Error as SqlxError;
+use sqlx::error::Error as SqlxError;
 
 #[derive(Debug)]
 pub enum Error {
     ParseError(std::num::ParseIntError),
     MissingParameters,
     QuestionNotFound,
-    DatabaseQueryError,
+    DatabaseQueryError(SqlxError),
 }
 
 impl std::fmt::Display for Error {
@@ -25,7 +23,9 @@ impl std::fmt::Display for Error {
             },
             Error::MissingParameters => write!(f, "Missing parameter"),
             Error::QuestionNotFound => write!(f, "Question nor found"),
-            Error::DatabaseQueryError => write!(f, "Query could not be executed."),
+            Error::DatabaseQueryError => {
+                write!(f, "Query could not be executed", e)
+            },
         }
     }
 }
