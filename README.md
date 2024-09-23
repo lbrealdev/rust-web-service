@@ -17,8 +17,14 @@ http://localhost:3030/questions
 ```
 
 ### Get questions
+
+Using jq:
 ```shell
-curl "http://localhost:3030/questions?start=1&end=200"
+curl -s -L 'http://localhost:3030/questions' -H 'Content-type: application/json' | jq .
+```
+
+```shell
+curl -s -L 'http://localhost:3030/questions?offset=1&limit=200' | jq .
 ```
 
 ### Create a new question
@@ -47,7 +53,7 @@ curl -v -L 'http://localhost:3030/questions' \
 curl -L -X PUT 'http://localhost:3030/questions/2' \
   -H 'Content-type: application/json' \
   -d '{
-        "id": "2",
+        "id": 2,
         "title": "White Collar Criminal",
         "content": "Midnite"
       }'
