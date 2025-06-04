@@ -43,7 +43,7 @@ curl -w '\n' -L \
 
 Create a new question (updated):
 ```shell
-curl -v -L \
+curl -v -L -w '\n' \
   -H 'Content-type: application/json' \
   'http://localhost:3030/questions' \
   -d '{
@@ -54,20 +54,20 @@ curl -v -L \
 
 Update a question:
 ```shell
-curl -L \
+curl -L -w '\n' \
   -X PUT \
   -H 'Content-type: application/json' \
   'http://localhost:3030/questions/2' \
   -d '{
         "id": 2,
         "title": "White Collar Criminal",
-        "content": "Midnite"
+        "content": "Akae Beka"
       }'
 ```
 
 Delete a question:
 ```shell
-curl -L \
+curl -L -w '\n' \
   -X DELETE \
   -H 'Content-type: application/json' \
   'http://localhost:3030/questions/1'

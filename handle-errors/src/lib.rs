@@ -6,15 +6,17 @@ use warp::{
 };
 
 use tracing::{event, Level, instrument};
+use std::num::ParseIntError;
+use std::fmt::Display;
 
 #[derive(Debug)]
 pub enum Error {
-    ParseError(std::num::ParseIntError),
+    ParseError(ParseIntError),
     MissingParameters,
     DatabaseQueryError,
 }
 
-impl std::fmt::Display for Error {
+impl Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match &*self {
             Error::ParseError(ref err) => {
@@ -64,4 +66,3 @@ pub async fn return_error(r: Rejection) -> Result<impl Reply, Rejection> {
         ))
     }
 }
-

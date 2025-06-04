@@ -21,8 +21,12 @@ docker_ip := if db_ip == "Container is not running!" { "false" } else { "true" }
 
 # Alias
 
+alias server := run
 alias db-up := docker-psql-up
 alias db-down := docker-psql-down
+alias sqlx-create := sqlx-database-create
+alias sqlx-migrate := sqlx-migrate-run
+alias sqlx-status := sqlx-migrate-info
 
 # pre-commit
 
@@ -47,7 +51,7 @@ alias db-down := docker-psql-down
 
 @docker-psql-up:
     echo "Creating container {{ container }}..."
-    docker run -d --name {{ container }} -e POSTGRES_USER=$POSTGRES_USER -e POSTGRES_PASSWORD=$POSTGRES_PASSWORD -p 5432:5432 postgres
+    docker run -d --name {{ container }} -e POSTGRES_USER=$POSTGRES_USER -e POSTGRES_PASSWORD=$POSTGRES_PASSWORD -p 5432:5432 {{ image }}
 
 @docker-psql-down:
     echo "Removing container {{ container }}..."
@@ -56,23 +60,23 @@ alias db-down := docker-psql-down
 
 # sqlx
 
-@sql-info:
-    if {{ docker_ip }}; then \
-        sqlx migrate info -D postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@{{ db_ip }}:5432/{{ db_name }}; \
-    else \
-        echo "IP does not exist!"; \
-    fi
-
-@sql-init:
+@sqlx-database-create:
     if {{ docker_ip }}; then \
         sqlx database create -D postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@{{ db_ip }}:5432/{{ db_name }}; \
     else \
         echo "IP does not exist!"; \
     fi
 
-@sql-run:
+@sqlx-migrate-run:
     if {{ docker_ip }}; then \
         sqlx migrate run -D postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@{{ db_ip }}:5432/{{ db_name }}; \
+    else \
+        echo "IP does not exist!"; \
+    fi
+
+@sqlx-migrate-info:
+    if {{ docker_ip }}; then \
+        sqlx migrate info -D postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@{{ db_ip }}:5432/{{ db_name }}; \
     else \
         echo "IP does not exist!"; \
     fi
