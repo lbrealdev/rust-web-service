@@ -19,4 +19,3 @@ pub struct NewQuestion {
     pub content: String,
     pub tags: Option<Vec<String>>,
 }
-

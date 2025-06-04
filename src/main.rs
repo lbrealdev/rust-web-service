@@ -10,11 +10,11 @@ mod types;
 
 #[tokio::main]
 async fn main() {
-    let log_filter = std::env::var("RUST_LOG").unwrap_or_else(|_| {
-        "handle_errors=warn,web_service=info,warp=error".to_owned()
-    });
+    let log_filter = std::env::var("RUST_LOG")
+        .unwrap_or_else(|_| "handle_errors=warn,web_service=info,warp=error".to_owned());
 
-    let store = store::Store::new("postgres://admin:randompass1230D@localhost:5432/rustwebdev").await;
+    let store =
+        store::Store::new("postgres://admin:randompass1230D@localhost:5432/rustwebdev").await;
 
     sqlx::migrate!()
         .run(&store.clone().connection)
