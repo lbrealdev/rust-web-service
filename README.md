@@ -30,11 +30,11 @@ curl -sL 'http://localhost:3030/questions?offset=1&limit=200' | jq .
 
 Create a new question:
 ```shell
-curl -L \
-  -X POST \
-  -H 'Content-type: application/json' \
-  'http://localhost:3030/questions'
-  -d '{
+curl -w '\n' -L \
+ -X POST \
+ -H 'Content-type: application/json' \
+ 'http://localhost:3030/questions' \
+   -d '{
         "id": "2",
         "title": "New question",
         "content": "How does this work again?"
@@ -76,6 +76,23 @@ curl -L \
 Tree project excluding target/ directory:
 ```shell
 tree -I target
+```
+
+## Setup local database
+
+Pull the `postgres` docker image:
+```shell
+docker pull postgres
+```
+
+Create an `.env` file with psql password:
+```shell
+echo 'POSTGRES_PASSWORD="localpsql2025"' > .env
+```
+
+
+```shell
+
 ```
 
 ## Chapter 5

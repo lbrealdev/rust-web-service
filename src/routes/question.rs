@@ -35,7 +35,7 @@ pub async fn add_question(
 ) -> Result<impl warp::Reply, warp::Rejection> {
     match store.add_question(new_question).await {
         Ok(_) => Ok(warp::reply::with_status(
-            format!("Question added"),
+            "Question added".to_string(),
             StatusCode::OK,
         )),
         Err(e) => Err(warp::reject::custom(e)),
