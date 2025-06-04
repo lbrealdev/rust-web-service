@@ -6,7 +6,7 @@ A rust web service using warp and tokio.
 
 Run the web-server:
 ```shell
-cargo run
+just run
 ```
 
 Once the server is running, you can access through the following URLs:
@@ -18,8 +18,8 @@ Once the server is running, you can access through the following URLs:
 
 Get questions:
 ```shell
-curl -sL \ 
-  -H 'Content-type: application/json' \ 
+curl -sL \
+  -H 'Content-type: application/json' \
   'http://localhost:3030/questions' | jq .
 ```
 
@@ -30,9 +30,9 @@ curl -sL 'http://localhost:3030/questions?offset=1&limit=200' | jq .
 
 Create a new question:
 ```shell
-curl -L \ 
-  -X POST \ 
-  -H 'Content-type: application/json' \ 
+curl -L \
+  -X POST \
+  -H 'Content-type: application/json' \
   'http://localhost:3030/questions'
   -d '{
         "id": "2",
@@ -43,9 +43,9 @@ curl -L \
 
 Create a new question (updated):
 ```shell
-curl -v -L \ 
-  -H 'Content-type: application/json' \ 
-  'http://localhost:3030/questions' \ 
+curl -v -L \
+  -H 'Content-type: application/json' \
+  'http://localhost:3030/questions' \
   -d '{
         "title": "test - first question",
         "content": "How does this work again?"
@@ -54,10 +54,10 @@ curl -v -L \
 
 Update a question:
 ```shell
-curl -L \ 
-  -X PUT \ 
-  -H 'Content-type: application/json' \ 
-  'http://localhost:3030/questions/2' \ 
+curl -L \
+  -X PUT \
+  -H 'Content-type: application/json' \
+  'http://localhost:3030/questions/2' \
   -d '{
         "id": 2,
         "title": "White Collar Criminal",
@@ -67,9 +67,9 @@ curl -L \
 
 Delete a question:
 ```shell
-curl -L \ 
-  -X DELETE \ 
-  -H 'Content-type: application/json' \ 
+curl -L \
+  -X DELETE \
+  -H 'Content-type: application/json' \
   'http://localhost:3030/questions/1'
 ```
 
