@@ -2,35 +2,39 @@
 
 A rust web service using warp and tokio.
 
-## Use
+## Usage
 
 Run the web-server:
 ```shell
 cargo run
 ```
 
-Access your rust web-server via browser:
-```text
-http://localhost:3030
+Once the server is running, you can access through the following URLs:
 
-http://localhost:3030/questions
-```
+| **Endpoints**                   |
+|---------------------------------|
+|      http://localhost:3030      |
+| http://localhost:3030/questions |
 
 ### Get questions
 
 Using jq:
 ```shell
-curl -s -L 'http://localhost:3030/questions' -H 'Content-type: application/json' | jq .
+curl -sL \ 
+  -H 'Content-type: application/json' \ 
+  'http://localhost:3030/questions' | jq .
 ```
 
 ```shell
-curl -s -L 'http://localhost:3030/questions?offset=1&limit=200' | jq .
+curl -sL 'http://localhost:3030/questions?offset=1&limit=200' | jq .
 ```
 
 ### Create a new question
 ```shell
-curl -L -X POST 'http://localhost:3030/questions' \
-  -H 'Content-type: application/json' \
+curl -L \ 
+  -X POST \ 
+  -H 'Content-type: application/json' \ 
+  'http://localhost:3030/questions'
   -d '{
         "id": "2",
         "title": "New question",
@@ -40,8 +44,9 @@ curl -L -X POST 'http://localhost:3030/questions' \
 
 ### Create a new question - Updated
 ```shell
-curl -v -L 'http://localhost:3030/questions' \
-  -H 'Content-type: application/json' \
+curl -v -L \ 
+  -H 'Content-type: application/json' \ 
+  'http://localhost:3030/questions' \ 
   -d '{
         "title": "test - first question",
         "content": "How does this work again?"
@@ -50,8 +55,10 @@ curl -v -L 'http://localhost:3030/questions' \
 
 ### Update a question
 ```shell
-curl -L -X PUT 'http://localhost:3030/questions/2' \
-  -H 'Content-type: application/json' \
+curl -L \ 
+  -X PUT \ 
+  -H 'Content-type: application/json' \ 
+  'http://localhost:3030/questions/2' \ 
   -d '{
         "id": 2,
         "title": "White Collar Criminal",
@@ -61,7 +68,10 @@ curl -L -X PUT 'http://localhost:3030/questions/2' \
 
 ### Delete a question
 ```shell
-curl -L -X DELETE 'http://localhost:3030/questions/1' -H 'Content-type: application/json'
+curl -L \ 
+  -X DELETE \ 
+  -H 'Content-type: application/json' \ 
+  'http://localhost:3030/questions/1'
 ```
 
 Tree project excluding target/ directory:
@@ -69,15 +79,14 @@ Tree project excluding target/ directory:
 tree -I target
 ```
 
-
-### Chapter 5
+## Chapter 5
 
 Create a new library in Rust:
 ```shell
 cargo new handle-errors --lib
 ```
 
-### Chapter 6
+## Chapter 6
 
 ```shell
 RUST_LOG=info cargo run
@@ -91,6 +100,4 @@ RUST_LOG=info cargo run 2>logs.txt
 curl -L -X GET 'localhost:3030/questions'
 ```
 
-### Chapter 7
-
-
+## Chapter 7
