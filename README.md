@@ -16,20 +16,19 @@ Once the server is running, you can access through the following URLs:
 |      http://localhost:3030      |
 | http://localhost:3030/questions |
 
-### Get questions
-
-Using jq:
+Get questions:
 ```shell
 curl -sL \ 
   -H 'Content-type: application/json' \ 
   'http://localhost:3030/questions' | jq .
 ```
 
+Get questions with query:
 ```shell
 curl -sL 'http://localhost:3030/questions?offset=1&limit=200' | jq .
 ```
 
-### Create a new question
+Create a new question:
 ```shell
 curl -L \ 
   -X POST \ 
@@ -42,7 +41,7 @@ curl -L \
       }'
 ```
 
-### Create a new question - Updated
+Create a new question (updated):
 ```shell
 curl -v -L \ 
   -H 'Content-type: application/json' \ 
@@ -53,7 +52,7 @@ curl -v -L \
       }'
 ```
 
-### Update a question
+Update a question:
 ```shell
 curl -L \ 
   -X PUT \ 
@@ -66,7 +65,7 @@ curl -L \
       }'
 ```
 
-### Delete a question
+Delete a question:
 ```shell
 curl -L \ 
   -X DELETE \ 
