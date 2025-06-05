@@ -2,66 +2,87 @@
 
 A rust web service using warp and tokio.
 
-## Use
+## Usage
 
 Run the web-server:
 ```shell
-cargo run
+just run
 ```
 
-Access your rust web-server via browser:
-```text
-http://localhost:3030
+Once the server is running, you can access through the following URLs:
 
-http://localhost:3030/questions
-```
+| **Endpoints**                   |
+|---------------------------------|
+|      http://localhost:3030      |
+| http://localhost:3030/questions |
 
-### Get questions
-
-Using jq:
+Get questions:
 ```shell
-curl -s -L 'http://localhost:3030/questions' -H 'Content-type: application/json' | jq .
-```
-
-```shell
-curl -s -L 'http://localhost:3030/questions?offset=1&limit=200' | jq .
-```
-
-### Create a new question
-```shell
-curl -L -X POST 'http://localhost:3030/questions' \
+curl -sL \
   -H 'Content-type: application/json' \
-  -d '{
-        "id": "2",
-        "title": "New question",
-        "content": "How does this work again?"
-      }'
+  'http://localhost:3030/questions' | jq .
 ```
 
-### Create a new question - Updated
+Get questions with query:
 ```shell
-curl -v -L 'http://localhost:3030/questions' \
+curl -sL 'http://localhost:3030/questions?offset=1&limit=200' | jq .
+```
+
+Create a new question:
+```shell
+curl -w '\n' -L \
+ -X POST \
+ -H 'Content-type: application/json' \
+ 'http://localhost:3030/questions' \
+ -d '{
+      "id": "2",
+      "title": "New question",
+      "content": "How does this work again?"
+    }'
+```
+
+Create a new question (updated):
+```shell
+curl -v -L -w '\n' \
   -H 'Content-type: application/json' \
+  'http://localhost:3030/questions' \
   -d '{
         "title": "test - first question",
         "content": "How does this work again?"
       }'
 ```
 
-### Update a question
+Add answer:
 ```shell
-curl -L -X PUT 'http://localhost:3030/questions/2' \
+curl -v -L -w '\n' \
   -H 'Content-type: application/json' \
+  'http://localhost:3030/answers' \
+  -d '{
+        "id": "2",
+        "content": "Only run things!!"
+        "question_id": "1"
+     }'
+```
+
+Update a question:
+```shell
+curl -L -w '\n' \
+  -X PUT \
+  -H 'Content-type: application/json' \
+  'http://localhost:3030/questions/2' \
   -d '{
         "id": 2,
         "title": "White Collar Criminal",
-        "content": "Midnite"
+        "content": "Akae Beka"
       }'
 ```
 
-### Delete a question
+Delete a question:
 ```shell
-curl -L -X DELETE 'http://localhost:3030/questions/1' -H 'Content-type: application/json'
+curl -L -w '\n' \
+  -X DELETE \
+  -H 'Content-type: application/json' \
+  'http://localhost:3030/questions/1'
 ```
 
 Tree project excluding target/ directory:
@@ -69,15 +90,31 @@ Tree project excluding target/ directory:
 tree -I target
 ```
 
+## Setup local database
 
-### Chapter 5
+Pull the `postgres` docker image:
+```shell
+docker pull postgres
+```
+
+Create an `.env` file with psql password:
+```shell
+echo 'POSTGRES_PASSWORD="localpsql2025"' > .env
+```
+
+
+```shell
+
+```
+
+## Chapter 5
 
 Create a new library in Rust:
 ```shell
 cargo new handle-errors --lib
 ```
 
-### Chapter 6
+## Chapter 6
 
 ```shell
 RUST_LOG=info cargo run
@@ -91,6 +128,4 @@ RUST_LOG=info cargo run 2>logs.txt
 curl -L -X GET 'localhost:3030/questions'
 ```
 
-### Chapter 7
-
-
+## Chapter 7

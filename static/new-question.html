@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Create New Question</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <h1>Create New Question</h1>
+
+  <form id="new-question-form">
+    <label for="title">Title</label>
+    <input type="text" id="title" name="title" placeholder="Enter question title" required />
+
+    <label for="content">Content</label>
+    <textarea id="content" name="content" rows="5" placeholder="Describe your question" required></textarea>
+
+    <label for="tags">Tags (comma separated)</label>
+    <input type="text" id="tags" name="tags" placeholder="tag1, tag2, tag3" />
+
+    <button type="submit">Submit Question</button>
+  </form>
+
+  <div class="centered">
+    <a href="/" class="button" id="back-question-btn">Back to Questions</a>
+  </div>
+
+  <script>
+    document.getElementById('new-question-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const title = e.target.title.value.trim();
+      const content = e.target.content.value.trim();
+      const tagsRaw = e.target.tags.value.trim();
+      const tags = tagsRaw ? tagsRaw.split(',').map(t => t.trim()) : null;
+
+      try {
+        const response = await fetch('/questions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ title, content, tags })
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to create question');
+        }
+
+        alert('Question created successfully!');
+        window.location.href = '/';
+      } catch (err) {
+        alert(err.message);
+      }
+    });
+  </script>
+</body>
+</html>

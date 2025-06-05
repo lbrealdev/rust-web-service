@@ -13,8 +13,7 @@ async fn main() {
     let log_filter = std::env::var("RUST_LOG")
         .unwrap_or_else(|_| "handle_errors=warn,web_service=info,warp=error".to_owned());
 
-    let store =
-        store::Store::new("postgres://admin:randompass1230D@localhost:5432/rustwebdev").await;
+    let store = store::Store::new("postgres://admin:localpsql2025@localhost:5432/rustwebdev").await;
 
     sqlx::migrate!()
         .run(&store.clone().connection)
@@ -57,7 +56,15 @@ async fn main() {
         .and(warp::path::end())
         .and(store_filter.clone())
         .and(warp::body::json())
-        .and_then(routes::question::add_question);
+        .and_then(routes::question::add_question)
+        .with(warp::trace(|info| {
+            tracing::info_span!(
+                "add_question request",
+                method = %info.method(),
+                path = %info.method(),
+                id = %uuid::Uuid::new_v4(),
+            )
+        }));
 
     let update_question = warp::put()
         .and(warp::path("questions"))
@@ -65,23 +72,54 @@ async fn main() {
         .and(warp::path::end())
         .and(store_filter.clone())
         .and(warp::body::json())
-        .and_then(routes::question::update_question);
+        .and_then(routes::question::update_question)
+        .with(warp::trace(|info| {
+            tracing::info_span!(
+                "update_question request",
+                method = %info.method(),
+                path = %info.method(),
+                id = %uuid::Uuid::new_v4(),
+            )
+        }));
 
     let delete_question = warp::delete()
         .and(warp::path("questions"))
         .and(warp::path::param::<i32>())
         .and(warp::path::end())
         .and(store_filter.clone())
-        .and_then(routes::question::delete_question);
+        .and_then(routes::question::delete_question)
+        .with(warp::trace(|info| {
+            tracing::info_span!(
+                "delete_question request",
+                method = %info.method(),
+                path = %info.method(),
+                id = %uuid::Uuid::new_v4(),
+            )
+        }));
 
     let add_answer = warp::post()
         .and(warp::path("answers"))
         .and(warp::path::end())
         .and(store_filter.clone())
         .and(warp::body::form())
-        .and_then(routes::answer::add_answer);
+        .and_then(routes::answer::add_answer)
+        .with(warp::trace(|info| {
+            tracing::info_span!(
+                "add_answer request",
+                method = %info.method(),
+                path = %info.method(),
+                id = %uuid::Uuid::new_v4(),
+            )
+        }));
 
-    let routes = get_questions
+    let index = warp::path::end()
+        .and(warp::fs::file("static/index.html"));
+
+    let static_files = warp::fs::dir("static");
+
+    let routes = index
+        .or(static_files)
+        .or(get_questions)
         .or(add_question)
         .or(update_question)
         .or(add_answer)

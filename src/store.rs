@@ -57,7 +57,7 @@ impl Store {
         match sqlx::query(
             "INSERT INTO questions (title, content, tags)
             VALUES ($1, $2, $3)
-            ",
+            RETURNING id, title, content, tags",
         )
         .bind(new_question.title)
         .bind(new_question.content)
