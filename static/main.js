@@ -1,32 +1,69 @@
+function showAlert(message) {
+  const alertModal = document.getElementById('alert');
+  const alertMessage = document.getElementById('alert-message');
+  const alertOk = document.getElementById('alert-ok');
+
+  alertMessage.textContent = message;
+  alertModal.classList.remove('hidden');
+
+  alertOk.onclick = () => {
+    alertModal.classList.add('hidden');
+  };
+}
+
+function showConfirm(message) {
+  return new Promise((resolve) => {
+    const modal = document.getElementById('modal');
+    const modalMessage = document.getElementById('modal-message');
+    const modalConfirm = document.getElementById('modal-confirm');
+    const modalCancel = document.getElementById('modal-cancel');
+
+    modalMessage.textContent = message;
+    modal.classList.remove('hidden');
+
+    modalConfirm.onclick = () => {
+      modal.classList.add('hidden');
+      resolve(true);
+    };
+
+    modalCancel.onclick = () => {
+      modal.classList.add('hidden');
+      resolve(false);
+    };
+  });
+}
+
 function loadQuestions() {
   fetch('/questions')
     .then(res => res.json())
     .then(questions => {
       const list = document.getElementById('questions-list');
-      list.innerHTML = '';  // limpa lista antes de carregar
+      list.innerHTML = '';
 
       questions.forEach(q => {
         const li = document.createElement('li');
-        li.textContent = `#${q.id} - ${q.title}: ${q.content} `;
 
-        // Botão deletar
+        const span = document.createElement('span');
+        span.textContent = `#${q.id} - ${q.title}`;
+        li.appendChild(span);
+
         const delBtn = document.createElement('button');
         delBtn.textContent = 'Delete';
-        delBtn.className = 'button delete-button';
-        delBtn.style.marginLeft = '15px';
+        delBtn.className = 'delete-button';
 
-        delBtn.onclick = () => {
-          if (confirm(`Delete question #${q.id}?`)) {
+        delBtn.onclick = async () => {
+          const confirmDelete = await showConfirm(`Delete question #${q.id}?`);
+          if (confirmDelete) {
             fetch(`/questions/${q.id}`, { method: 'DELETE' })
               .then(res => {
                 if (res.ok) {
-                  alert(`Question #${q.id} deleted.`);
-                  loadQuestions(); // recarrega lista
+                  showAlert(`Question #${q.id} deleted.`);
+                  loadQuestions();
                 } else {
-                  alert(`Failed to delete question #${q.id}.`);
+                  showAlert(`Failed to delete question #${q.id}.`);
                 }
               })
-              .catch(() => alert('Network error.'));
+              .catch(() => showAlert('Network error.'));
           }
         };
 
@@ -34,8 +71,10 @@ function loadQuestions() {
         list.appendChild(li);
       });
     })
-    .catch(err => console.error('Error loading questions:', err));
+    .catch(err => {
+      console.error('Error loading questions:', err);
+      showAlert('Failed to load questions.');
+    });
 }
 
-// Carrega perguntas ao abrir a página
 loadQuestions();

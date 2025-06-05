@@ -8,9 +8,28 @@
 <body>
   <h1>All Questions</h1>
   <ul id="questions-list"></ul>
-  <a href="/new-question.html" class="button" id="create-question-btn">Create New Question</a>
+  
+  <div class="centered">
+    <a href="/new-question.html" class="button" id="create-question-btn">Create New Question</a>
+  </div>
+  
+  <div id="modal" class="modal hidden">
+    <div class="modal-content">
+      <p id="modal-message"></p>
+      <div class="modal-buttons">
+        <button id="modal-confirm" class="button">Confirm</button>
+        <button id="modal-cancel" class="button">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="alert" class="modal hidden">
+    <div class="modal-content">
+      <p id="alert-message"></p>
+      <button id="alert-ok" class="button">OK</button>
+    </div>
+  </div>
 
   <script src="/main.js"></script>
 </body>
 </html>
-
