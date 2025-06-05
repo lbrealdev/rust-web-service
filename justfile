@@ -47,6 +47,11 @@ alias sqlx-status := sqlx-migrate-info
 @fmt:
     cargo fmt
 
+# watchexec
+
+@watch:
+    watchexec -e rs,js,css,html just server
+
 # docker
 
 @docker-psql-up:
