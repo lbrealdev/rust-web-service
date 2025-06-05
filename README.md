@@ -34,11 +34,11 @@ curl -w '\n' -L \
  -X POST \
  -H 'Content-type: application/json' \
  'http://localhost:3030/questions' \
-   -d '{
-        "id": "2",
-        "title": "New question",
-        "content": "How does this work again?"
-      }'
+ -d '{
+      "id": "2",
+      "title": "New question",
+      "content": "How does this work again?"
+    }'
 ```
 
 Create a new question (updated):
@@ -50,6 +50,18 @@ curl -v -L -w '\n' \
         "title": "test - first question",
         "content": "How does this work again?"
       }'
+```
+
+Add answer:
+```shell
+curl -v -L -w '\n' \
+  -H 'Content-type: application/json' \
+  'http://localhost:3030/answers' \
+  -d '{
+        "id": "2",
+        "content": "Only run things!!"
+        "question_id": "1"
+     }'
 ```
 
 Update a question:

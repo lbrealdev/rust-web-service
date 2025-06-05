@@ -1,0 +1,137 @@
+/* Basic reset */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f0f4f8;
+  color: #333;
+  padding: 20px;
+}
+
+h1 {
+  color: #2c3e50;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+ul#questions-list {
+  list-style: none;
+  max-width: 600px;
+  margin: 0 auto 40px auto;
+  padding: 0;
+}
+
+ul#questions-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  margin-bottom: 12px;
+  padding: 15px 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+ul#questions-list li button {
+  flex-shrink: 0;
+  margin-left: 15px;
+}
+
+ul#questions-list li:hover {
+  background-color: #e8f1fc;
+}
+
+a.button {
+  display: inline-block;
+  background-color: #3498db;
+  color: white;
+  padding: 12px 25px;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: bold;
+  text-align: center;
+  transition: background-color 0.3s ease;
+  max-width: 200px;
+  margin: 0 auto;
+  display: block;
+}
+
+a.button:hover {
+  background-color: #2980b9;
+}
+
+/* Basic form */
+form {
+  max-width: 600px;
+  margin: 0 auto;
+  background: white;
+  padding: 25px 30px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+form label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+form input[type="text"],
+form textarea {
+  width: 100%;
+  padding: 10px 12px;
+  margin-bottom: 20px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+  font-family: inherit;
+  resize: vertical;
+}
+
+form button {
+  background-color: #27ae60;
+  border: none;
+  padding: 12px 25px;
+  color: white;
+  font-weight: bold;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+form button:hover {
+  background-color: #1e8449;
+}
+
+.button {
+  background-color: #4CAF50; /* green */
+  border: none;
+  color: white;
+  padding: 12px 24px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.button:hover {
+  background-color: #45a049;
+}
+
+.delete-button {
+  background-color: #e74c3c;
+}
+
+.delete-button:hover {
+  background-color: #c0392b;
+}
