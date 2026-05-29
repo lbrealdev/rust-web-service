@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#f0f4f8" />
   <title>Questions</title>
   <link rel="stylesheet" href="/style.css">
 </head>
@@ -19,9 +21,9 @@
     <a href="/new-question.html" class="button" id="create-question-btn" style="display:none;">Create New Question</a>
   </div>
   
-  <div id="modal" class="modal hidden">
+  <div id="modal" class="modal hidden" role="dialog" aria-modal="true">
     <div class="modal-content">
-      <p id="modal-message"></p>
+      <p id="modal-message" aria-live="polite"></p>
       <div class="modal-buttons">
         <button id="modal-confirm" class="button">Confirm</button>
         <button id="modal-cancel" class="button">Cancel</button>
@@ -29,20 +31,21 @@
     </div>
   </div>
 
-  <div id="alert" class="modal hidden">
+  <div id="alert" class="modal hidden" role="dialog" aria-modal="true">
     <div class="modal-content">
-      <p id="alert-message"></p>
+      <p id="alert-message" aria-live="polite"></p>
       <button id="alert-ok" class="button">OK</button>
     </div>
   </div>
 
-  <div id="login-modal" class="modal hidden">
+  <div id="login-modal" class="modal hidden" role="dialog" aria-modal="true">
     <div class="modal-content">
       <p>Enter admin password to manage questions</p>
       <form id="login-form">
-        <input type="password" id="password" name="password" placeholder="Password" required />
-        <button type="submit" class="button" style="margin-top:15px;">Login</button>
-        <p id="login-error" style="color:#e74c3c; margin-top:10px;"></p>
+        <label for="password" class="sr-only">Password</label>
+        <input type="password" id="password" name="password" placeholder="Password" autocomplete="current-password" required />
+        <button type="submit" class="button" id="login-submit-btn" style="margin-top:15px;">Login</button>
+        <p id="login-error" style="color:#e74c3c; margin-top:10px;" role="alert"></p>
       </form>
       <button type="button" id="login-cancel" class="button" style="background-color:#95a5a6; margin-top:10px;">Cancel</button>
     </div>

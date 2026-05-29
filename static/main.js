@@ -1,6 +1,6 @@
 function showAlert(message) {
-  const alertModal = document.getElementById('alert');
   const alertMessage = document.getElementById('alert-message');
+  const alertModal = document.getElementById('alert');
   const alertOk = document.getElementById('alert-ok');
 
   alertMessage.textContent = message;
@@ -38,19 +38,27 @@ function showLoginPrompt() {
   const loginForm = document.getElementById('login-form');
   const loginError = document.getElementById('login-error');
   const loginCancel = document.getElementById('login-cancel');
+  const loginSubmitBtn = document.getElementById('login-submit-btn');
+  const passwordInput = loginForm.password;
 
   loginModal.classList.remove('hidden');
   loginError.textContent = '';
-  loginForm.password.focus();
+  passwordInput.focus();
 
   loginCancel.onclick = () => {
     loginModal.classList.add('hidden');
     loginError.textContent = '';
+    loginSubmitBtn.disabled = false;
+    loginSubmitBtn.textContent = 'Login';
   };
 
   loginForm.onsubmit = async (e) => {
     e.preventDefault();
-    const password = e.target.password.value;
+    const password = passwordInput.value;
+
+    loginSubmitBtn.disabled = true;
+    loginSubmitBtn.textContent = 'Logging in…';
+
     try {
       const res = await fetch('/login', {
         method: 'POST',
@@ -62,17 +70,20 @@ function showLoginPrompt() {
         localStorage.setItem('loggedIn', 'true');
         loginModal.classList.add('hidden');
         loginError.textContent = '';
-        e.target.password.value = '';
+        passwordInput.value = '';
         updateAuthUI();
         loadQuestions();
         showAlert('Logged in successfully!');
       } else {
         loginError.textContent = data.message || 'Login failed';
-        e.target.password.value = '';
-        e.target.password.focus();
+        passwordInput.value = '';
+        passwordInput.focus();
       }
     } catch (err) {
       loginError.textContent = 'Network error';
+    } finally {
+      loginSubmitBtn.disabled = false;
+      loginSubmitBtn.textContent = 'Login';
     }
   };
 }
@@ -100,6 +111,14 @@ function loadQuestions() {
     .then(questions => {
       const list = document.getElementById('questions-list');
       list.innerHTML = '';
+
+      if (!questions || questions.length === 0) {
+        const emptyLi = document.createElement('li');
+        emptyLi.className = 'empty-state';
+        emptyLi.textContent = 'No questions yet. Be the first!';
+        list.appendChild(emptyLi);
+        return;
+      }
 
       questions.forEach(q => {
         const li = document.createElement('li');
@@ -159,7 +178,6 @@ function loadQuestions() {
     });
 }
 
-// Handle login/logout
 document.addEventListener('DOMContentLoaded', () => {
   updateAuthUI();
   loadQuestions();
@@ -167,7 +185,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const loginBtn = document.getElementById('login-btn');
   if (loginBtn) {
     loginBtn.addEventListener('click', () => {
-      console.log('Login button clicked');
       showLoginPrompt();
     });
   }
