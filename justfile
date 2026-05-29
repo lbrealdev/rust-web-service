@@ -47,6 +47,11 @@ alias sqlx-status := sqlx-migrate-info
 @fmt:
     cargo fmt
 
+# watchexec
+
+@watch:
+    watchexec -e rs,js,css,html just server
+
 # docker
 
 @docker-psql-up:
@@ -79,8 +84,8 @@ alias sqlx-status := sqlx-migrate-info
 @sqlx-migrate-run:
     echo "Running migrations..."
     sleep 3
-    # just _sqlx-database-create
-    # just _sqlx-migrate-add
+    just _sqlx-database-create
+    just _sqlx-migrate-add
     sqlx migrate run -D postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@{{ db_ip }}:5432/{{ db_name }}
 
 @sqlx-run:
