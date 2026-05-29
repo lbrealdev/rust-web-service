@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use tracing::{event, instrument, Level};
 use warp::{
     http::StatusCode,
-    reject::{custom, Rejection}
+    reject::{custom, Rejection},
 };
 
 use crate::store::Store;

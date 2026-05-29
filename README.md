@@ -1,131 +1,78 @@
 # Rust web service
 
-A rust web service using warp and tokio.
+A Q&A web service built with Rust (Warp + Tokio + SQLx + PostgreSQL).
 
-## Usage
+## Quick start
 
-Run the web-server:
-```shell
-just run
+```sh
+just db-up          # start PostgreSQL container
+just sqlx-migrate   # run migrations
+just server         # start the server on http://127.0.0.1:3030
 ```
 
-Once the server is running, you can access through the following URLs:
+## Endpoints
 
-| **Endpoints**                   |
-|---------------------------------|
-|      http://localhost:3030      |
-| http://localhost:3030/questions |
+| Method | Path               | Description       |
+|--------|--------------------|-------------------|
+| GET    | `/questions`       | List questions    |
+| POST   | `/questions`       | Create question   |
+| PUT    | `/questions/:id`   | Update question   |
+| DELETE | `/questions/:id`   | Delete question   |
+| POST   | `/answers`         | Add answer        |
+| POST   | `/login`           | Admin login       |
 
-Get questions:
-```shell
-curl -sL \
-  -H 'Content-type: application/json' \
-  'http://localhost:3030/questions' | jq .
+See [docs/api.md](docs/api.md) for full request/response schemas.
+
+## Authentication
+
+The UI includes a simple login gate. Once logged in, the **Create New Question** button and **Delete** buttons become visible. This is client-side only — the API itself has no auth headers.
+
+The password is set in `.env` as `ADMIN_PASSWORD`.
+
+## Dev commands
+
+```sh
+just lint    # cargo clippy
+just fmt     # cargo fmt
+just test    # cargo test
+just watch   # auto-restart on file change
 ```
 
-Get questions with query:
-```shell
-curl -sL 'http://localhost:3030/questions?offset=1&limit=200' | jq .
+Before committing:
+
+```sh
+just fmt && just lint && just test
 ```
 
-Create a new question:
-```shell
-curl -w '\n' -L \
- -X POST \
- -H 'Content-type: application/json' \
- 'http://localhost:3030/questions' \
- -d '{
-      "id": "2",
-      "title": "New question",
-      "content": "How does this work again?"
-    }'
+## Architecture
+
+| Layer          | Technology                       |
+|----------------|----------------------------------|
+| HTTP framework | Warp                             |
+| Async runtime  | Tokio                            |
+| Database       | PostgreSQL (via Docker)          |
+| ORM/Migrations | SQLx                             |
+| Error handling | Local crate `handle-errors/`     |
+| Frontend       | Vanilla HTML/CSS/JS in `static/` |
+
+## Project structure
+
+```
+src/
+  main.rs          Entry point, Warp routes
+  store.rs         Database queries
+  routes/          Route handlers (question, answer, login)
+  types/           Request/response structs
+handle-errors/     Custom error types
+migrations/        SQL migration files
+static/            Frontend assets
+docs/              API documentation
 ```
 
-Create a new question (updated):
-```shell
-curl -v -L -w '\n' \
-  -H 'Content-type: application/json' \
-  'http://localhost:3030/questions' \
-  -d '{
-        "title": "test - first question",
-        "content": "How does this work again?"
-      }'
-```
+## Setup database
 
-Add answer:
-```shell
-curl -v -L -w '\n' \
-  -H 'Content-type: application/json' \
-  'http://localhost:3030/answers' \
-  -d '{
-        "id": "2",
-        "content": "Only run things!!"
-        "question_id": "1"
-     }'
-```
-
-Update a question:
-```shell
-curl -L -w '\n' \
-  -X PUT \
-  -H 'Content-type: application/json' \
-  'http://localhost:3030/questions/2' \
-  -d '{
-        "id": 2,
-        "title": "White Collar Criminal",
-        "content": "Akae Beka"
-      }'
-```
-
-Delete a question:
-```shell
-curl -L -w '\n' \
-  -X DELETE \
-  -H 'Content-type: application/json' \
-  'http://localhost:3030/questions/1'
-```
-
-Tree project excluding target/ directory:
-```shell
-tree -I target
-```
-
-## Setup local database
-
-Pull the `postgres` docker image:
-```shell
+```sh
 docker pull postgres
-```
-
-Create an `.env` file with psql password:
-```shell
 echo 'POSTGRES_PASSWORD="localpsql2025"' > .env
+just db-up
 ```
-
-
-```shell
-
-```
-
-## Chapter 5
-
-Create a new library in Rust:
-```shell
-cargo new handle-errors --lib
-```
-
-## Chapter 6
-
-```shell
-RUST_LOG=info cargo run
-
-RUST_LOG=debug cargo run
-
-RUST_LOG=info cargo run 2>logs.txt
-```
-
-```shell
-curl -L -X GET 'localhost:3030/questions'
-```
-
-## Chapter 7

@@ -112,8 +112,21 @@ async fn main() {
             )
         }));
 
-    let index = warp::path::end()
-        .and(warp::fs::file("static/index.html"));
+    let login = warp::post()
+        .and(warp::path("login"))
+        .and(warp::path::end())
+        .and(warp::body::json())
+        .and_then(routes::login::login)
+        .with(warp::trace(|info| {
+            tracing::info_span!(
+                "login request",
+                method = %info.method(),
+                path = %info.method(),
+                id = %uuid::Uuid::new_v4(),
+            )
+        }));
+
+    let index = warp::path::end().and(warp::fs::file("static/index.html"));
 
     let static_files = warp::fs::dir("static");
 
@@ -123,6 +136,7 @@ async fn main() {
         .or(add_question)
         .or(update_question)
         .or(add_answer)
+        .or(login)
         .or(delete_question)
         .with(cors)
         .with(warp::trace::request())

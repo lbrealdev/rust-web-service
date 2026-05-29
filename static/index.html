@@ -7,10 +7,16 @@
 </head>
 <body>
   <h1>All Questions</h1>
+
+  <div class="auth-bar">
+    <button class="button" id="logout-btn" style="display:none;">Logout</button>
+    <button class="button" id="login-btn">Login</button>
+  </div>
+
   <ul id="questions-list"></ul>
   
   <div class="centered">
-    <a href="/new-question.html" class="button" id="create-question-btn">Create New Question</a>
+    <a href="/new-question.html" class="button" id="create-question-btn" style="display:none;">Create New Question</a>
   </div>
   
   <div id="modal" class="modal hidden">
@@ -27,6 +33,18 @@
     <div class="modal-content">
       <p id="alert-message"></p>
       <button id="alert-ok" class="button">OK</button>
+    </div>
+  </div>
+
+  <div id="login-modal" class="modal hidden">
+    <div class="modal-content">
+      <p>Enter admin password to manage questions</p>
+      <form id="login-form">
+        <input type="password" id="password" name="password" placeholder="Password" required />
+        <button type="submit" class="button" style="margin-top:15px;">Login</button>
+        <p id="login-error" style="color:#e74c3c; margin-top:10px;"></p>
+      </form>
+      <button type="button" id="login-cancel" class="button" style="background-color:#95a5a6; margin-top:10px;">Cancel</button>
     </div>
   </div>
 
