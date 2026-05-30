@@ -1,10 +1,17 @@
 document.getElementById('new-question-form').addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  const title = e.target.title.value.trim();
-  const content = e.target.content.value.trim();
-  const tagsRaw = e.target.tags.value.trim();
+  const form = e.target;
+  const title = form.title.value.trim();
+  const content = form.content.value.trim();
+  const tagsRaw = form.tags.value.trim();
   const tags = tagsRaw ? tagsRaw.split(',').map(t => t.trim()) : null;
+  const submitBtn = document.getElementById('submit-btn');
+  const errorEl = document.getElementById('form-error');
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Creating…';
+  errorEl.textContent = '';
 
   try {
     const response = await fetch('/questions', {
@@ -16,11 +23,15 @@ document.getElementById('new-question-form').addEventListener('submit', async (e
     });
 
     if (!response.ok) {
-      throw new Error('Failed to create question');
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.message || 'Failed to create question');
     }
 
     window.location.href = '/';
   } catch (err) {
-    alert(err.message);
+    errorEl.textContent = err.message;
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Submit Question';
   }
 });

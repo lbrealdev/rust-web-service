@@ -5,6 +5,14 @@
   padding: 0;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-property: none !important;
+  }
+}
+
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background: #f0f4f8;
@@ -16,6 +24,7 @@ h1 {
   color: #2c3e50;
   margin-bottom: 20px;
   text-align: center;
+  text-wrap: balance;
 }
 
 ul#questions-list {
@@ -59,10 +68,23 @@ ul#questions-list li button.delete-button {
   display: flex;
   align-items: center;
   justify-content: center;
+  touch-action: manipulation;
 }
 
 ul#questions-list li button.delete-button:hover {
   background-color: #c0392b;
+}
+
+ul#questions-list li button.delete-button:focus-visible {
+  outline: 2px solid #c0392b;
+  outline-offset: 2px;
+}
+
+ul#questions-list li .empty-state {
+  text-align: center;
+  color: #888;
+  font-style: italic;
+  padding: 30px 0;
 }
 
 form {
@@ -87,10 +109,21 @@ form textarea {
   padding: 10px 12px;
   margin-bottom: 20px;
   border-radius: 6px;
-  border: 1px solid #ccc;
+  border: 1px solid #aaa;
   font-size: 16px;
   font-family: inherit;
   resize: vertical;
+}
+
+form input[type="text"]:focus-visible,
+form textarea:focus-visible {
+  outline: 2px solid #27ae60;
+  outline-offset: 0;
+}
+
+form input[type="password"]:focus-visible {
+  outline: 2px solid #27ae60;
+  outline-offset: 0;
 }
 
 form button {
@@ -102,16 +135,33 @@ form button {
   border-radius: 6px;
   cursor: pointer;
   transition: background-color 0.3s ease;
+  touch-action: manipulation;
 }
 
 form button:hover {
   background-color: #1e8449;
 }
 
+form button:focus-visible {
+  outline: 2px solid #1e8449;
+  outline-offset: 2px;
+}
+
+form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+form .form-error {
+  color: #e74c3c;
+  margin-bottom: 15px;
+}
+
 .button {
   background-color: #27ae60;
   border: none;
   color: white;
+  font-weight: bold;
   padding: 12px 32px;
   text-align: center;
   text-decoration: none;
@@ -122,10 +172,16 @@ form button:hover {
   border-radius: 6px;
   transition: background-color 0.3s ease;
   white-space: nowrap;
+  touch-action: manipulation;
 }
 
 .button:hover {
   background-color: #1e8449;
+}
+
+.button:focus-visible {
+  outline: 2px solid #1e8449;
+  outline-offset: 2px;
 }
 
 /* Tag pills */
@@ -162,7 +218,7 @@ form button:hover {
   max-width: 600px;
   margin: 0 auto 20px auto;
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 10px;
 }
 
@@ -188,6 +244,7 @@ form button:hover {
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  overscroll-behavior: contain;
 }
 
 /* Hidden modal by default */
@@ -222,4 +279,48 @@ form button:hover {
   flex: 1;
   padding: 10px 20px;
   font-size: 15px;
+}
+
+/* Login modal specific */
+#login-modal .modal-content p {
+  margin-bottom: 12px;
+}
+
+/* Form actions row */
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+/* Secondary button (outlined/muted) */
+.button-secondary {
+  background-color: transparent;
+  border: 1px solid #95a5a6;
+  color: #666;
+}
+
+.button-secondary:hover {
+  background-color: #f0f4f8;
+  border-color: #7f8c8d;
+  color: #333;
+}
+
+.button-secondary:focus-visible {
+  outline: 2px solid #95a5a6;
+  outline-offset: 2px;
+}
+
+/* Screen reader only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }
