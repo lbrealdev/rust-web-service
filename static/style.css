@@ -161,6 +161,7 @@ form .form-error {
   background-color: #27ae60;
   border: none;
   color: white;
+  font-weight: bold;
   padding: 12px 32px;
   text-align: center;
   text-decoration: none;
@@ -217,7 +218,7 @@ form .form-error {
   max-width: 600px;
   margin: 0 auto 20px auto;
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 10px;
 }
 
@@ -283,6 +284,32 @@ form .form-error {
 /* Login modal specific */
 #login-modal .modal-content p {
   margin-bottom: 12px;
+}
+
+/* Form actions row */
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+/* Secondary button (outlined/muted) */
+.button-secondary {
+  background-color: transparent;
+  border: 1px solid #95a5a6;
+  color: #666;
+}
+
+.button-secondary:hover {
+  background-color: #f0f4f8;
+  border-color: #7f8c8d;
+  color: #333;
+}
+
+.button-secondary:focus-visible {
+  outline: 2px solid #95a5a6;
+  outline-offset: 2px;
 }
 
 /* Screen reader only */
