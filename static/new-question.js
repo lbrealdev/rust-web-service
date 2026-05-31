@@ -12,6 +12,7 @@ document.getElementById('new-question-form').addEventListener('submit', async (e
   submitBtn.disabled = true;
   submitBtn.textContent = 'Creating…';
   errorEl.textContent = '';
+  errorEl.classList.add('hidden');
 
   try {
     const response = await fetch('/questions', {
@@ -30,6 +31,7 @@ document.getElementById('new-question-form').addEventListener('submit', async (e
     window.location.href = '/';
   } catch (err) {
     errorEl.textContent = err.message;
+    errorEl.classList.remove('hidden');
   } finally {
     submitBtn.disabled = false;
     submitBtn.textContent = 'Submit Question';
