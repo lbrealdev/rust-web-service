@@ -1,3 +1,30 @@
+/* === Theme Toggle =================================================== */
+
+(function () {
+  const savedTheme = localStorage.getItem('theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+  if (savedTheme) {
+    document.documentElement.setAttribute('data-theme', savedTheme);
+  } else if (prefersDark) {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const toggle = document.getElementById('theme-toggle');
+    if (!toggle) return;
+
+    toggle.addEventListener('click', () => {
+      const current = document.documentElement.getAttribute('data-theme') || 'light';
+      const next = current === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+    });
+  });
+})();
+
+/* === UI Helpers ===================================================== */
+
 function showAlert(message) {
   const alertMessage = document.getElementById('alert-message');
   const alertModal = document.getElementById('alert');
@@ -43,13 +70,15 @@ function showLoginPrompt() {
 
   loginModal.classList.remove('hidden');
   loginError.textContent = '';
+  loginError.classList.add('hidden');
   passwordInput.focus();
 
   loginCancel.onclick = () => {
     loginModal.classList.add('hidden');
     loginError.textContent = '';
+    loginError.classList.add('hidden');
     loginSubmitBtn.disabled = false;
-    loginSubmitBtn.textContent = 'Login';
+    loginSubmitBtn.textContent = 'login';
   };
 
   loginForm.onsubmit = async (e) => {
@@ -57,7 +86,7 @@ function showLoginPrompt() {
     const password = passwordInput.value;
 
     loginSubmitBtn.disabled = true;
-    loginSubmitBtn.textContent = 'Logging in…';
+    loginSubmitBtn.textContent = 'logging in…';
 
     try {
       const res = await fetch('/login', {
@@ -70,20 +99,23 @@ function showLoginPrompt() {
         localStorage.setItem('loggedIn', 'true');
         loginModal.classList.add('hidden');
         loginError.textContent = '';
+        loginError.classList.add('hidden');
         passwordInput.value = '';
         updateAuthUI();
         loadQuestions();
-        showAlert('Logged in successfully!');
+        showAlert('logged in successfully.');
       } else {
-        loginError.textContent = data.message || 'Login failed';
+        loginError.textContent = data.message || 'login failed';
+        loginError.classList.remove('hidden');
         passwordInput.value = '';
         passwordInput.focus();
       }
-    } catch (err) {
-      loginError.textContent = 'Network error';
-    } finally {
+  } catch (err) {
+    loginError.textContent = 'network error';
+    loginError.classList.remove('hidden');
+  } finally {
       loginSubmitBtn.disabled = false;
-      loginSubmitBtn.textContent = 'Login';
+      loginSubmitBtn.textContent = 'login';
     }
   };
 }
@@ -95,13 +127,13 @@ function updateAuthUI() {
   const loginBtn = document.getElementById('login-btn');
 
   if (loggedIn) {
-    if (createBtn) createBtn.style.display = 'inline-block';
-    if (logoutBtn) logoutBtn.style.display = 'inline-block';
-    if (loginBtn) loginBtn.style.display = 'none';
+    if (createBtn) createBtn.classList.remove('hidden');
+    if (logoutBtn) logoutBtn.classList.remove('hidden');
+    if (loginBtn) loginBtn.classList.add('hidden');
   } else {
-    if (createBtn) createBtn.style.display = 'none';
-    if (logoutBtn) logoutBtn.style.display = 'none';
-    if (loginBtn) loginBtn.style.display = 'inline-block';
+    if (createBtn) createBtn.classList.add('hidden');
+    if (logoutBtn) logoutBtn.classList.add('hidden');
+    if (loginBtn) loginBtn.classList.remove('hidden');
   }
 }
 
@@ -115,7 +147,7 @@ function loadQuestions() {
       if (!questions || questions.length === 0) {
         const emptyLi = document.createElement('li');
         emptyLi.className = 'empty-state';
-        emptyLi.textContent = 'No questions yet. Be the first!';
+        emptyLi.textContent = 'no questions yet. be the first.';
         list.appendChild(emptyLi);
         return;
       }
@@ -147,22 +179,22 @@ function loadQuestions() {
 
         if (localStorage.getItem('loggedIn') === 'true') {
           const delBtn = document.createElement('button');
-          delBtn.textContent = 'Delete';
-          delBtn.className = 'delete-button';
+          delBtn.textContent = 'delete';
+          delBtn.className = 'button button-delete';
 
           delBtn.onclick = async () => {
-            const confirmDelete = await showConfirm(`Delete question #${q.id}?`);
+            const confirmDelete = await showConfirm(`delete question #${q.id}?`);
             if (confirmDelete) {
               fetch(`/questions/${q.id}`, { method: 'DELETE' })
                 .then(res => {
                   if (res.ok) {
-                    showAlert(`Question #${q.id} deleted.`);
+                    showAlert(`question #${q.id} deleted.`);
                     loadQuestions();
                   } else {
-                    showAlert(`Failed to delete question #${q.id}.`);
+                    showAlert(`failed to delete question #${q.id}.`);
                   }
                 })
-                .catch(() => showAlert('Network error.'));
+                .catch(() => showAlert('network error.'));
             }
           };
 
@@ -173,10 +205,12 @@ function loadQuestions() {
       });
     })
     .catch(err => {
-      console.error('Error loading questions:', err);
-      showAlert('Failed to load questions.');
+      console.error('error loading questions:', err);
+      showAlert('failed to load questions.');
     });
 }
+
+/* === Init =========================================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
   updateAuthUI();
@@ -195,7 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
       localStorage.removeItem('loggedIn');
       updateAuthUI();
       loadQuestions();
-      showAlert('Logged out.');
+      showAlert('logged out.');
     });
   }
 });
