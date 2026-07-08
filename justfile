@@ -76,7 +76,7 @@ alias sqlx-status := sqlx-migrate-info
     echo "Creating {{ db_name }} database"
     sqlx database create -D postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@{{ db_ip }}:5432/{{ db_name }}
 
-@_sqlx-migrate-add:
+@sqlx-migrate-add:
     sqlx migrate add -r questions_table
     sleep 1
     sqlx migrate add -r answers_table
@@ -85,8 +85,13 @@ alias sqlx-status := sqlx-migrate-info
     echo "Running migrations..."
     sleep 3
     just _sqlx-database-create
-    just _sqlx-migrate-add
     sqlx migrate run -D postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@{{ db_ip }}:5432/{{ db_name }}
+
+@sqlx-db-reset:
+    just db-down
+    just db-up
+    sleep 3
+    just sqlx-migrate
 
 @sqlx-run:
     echo '{{ if db_ip == "Container is not running!" { "Error!" } else { `just sqlx-migrate` } }}'
