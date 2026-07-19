@@ -13,9 +13,9 @@ pub struct Store {
 }
 
 impl Store {
-    pub async fn new(db_url: &str) -> Self {
+    pub async fn new(db_url: &str, max_connections: u32) -> Self {
         let db_pool = match PgPoolOptions::new()
-            .max_connections(5)
+            .max_connections(max_connections)
             .connect(db_url)
             .await
         {
@@ -46,6 +46,26 @@ impl Store {
             .await
         {
             Ok(questions) => Ok(questions),
+            Err(e) => {
+                tracing::event!(tracing::Level::ERROR, "{:?}", e);
+                Err(Error::DatabaseQueryError)
+            }
+        }
+    }
+
+    pub async fn get_question(&self, question_id: i32) -> Result<Question, Error> {
+        match sqlx::query("SELECT id, title, content, tags FROM questions WHERE id = $1")
+            .bind(question_id)
+            .map(|row: PgRow| Question {
+                id: QuestionId(row.get("id")),
+                title: row.get("title"),
+                content: row.get("content"),
+                tags: row.get("tags"),
+            })
+            .fetch_one(&self.connection)
+            .await
+        {
+            Ok(question) => Ok(question),
             Err(e) => {
                 tracing::event!(tracing::Level::ERROR, "{:?}", e);
                 Err(Error::DatabaseQueryError)
@@ -117,7 +137,28 @@ impl Store {
             .execute(&self.connection)
             .await
         {
-            Ok(_) => Ok(true),
+            Ok(result) => Ok(result.rows_affected() > 0),
+            Err(e) => {
+                tracing::event!(tracing::Level::ERROR, "{:?}", e);
+                Err(Error::DatabaseQueryError)
+            }
+        }
+    }
+
+    pub async fn get_answers(&self, question_id: i32) -> Result<Vec<Answer>, Error> {
+        match sqlx::query(
+            "SELECT id, content, question_id FROM answers WHERE question_id = $1 ORDER BY id",
+        )
+        .bind(question_id)
+        .map(|row: PgRow| Answer {
+            id: AnswerId(row.get("id")),
+            content: row.get("content"),
+            question_id: QuestionId(row.get("question_id")),
+        })
+        .fetch_all(&self.connection)
+        .await
+        {
+            Ok(answers) => Ok(answers),
             Err(e) => {
                 tracing::event!(tracing::Level::ERROR, "{:?}", e);
                 Err(Error::DatabaseQueryError)
@@ -126,16 +167,20 @@ impl Store {
     }
 
     pub async fn add_answer(&self, new_answer: NewAnswer) -> Result<Answer, Error> {
-        match sqlx::query("INSERT INTO answers (content, question_id) VALUES ($1, $2)")
-            .bind(new_answer.content)
-            .bind(new_answer.question_id.0)
-            .map(|row: PgRow| Answer {
-                id: AnswerId(row.get("id")),
-                content: row.get("content"),
-                question_id: QuestionId(row.get("question_id")),
-            })
-            .fetch_one(&self.connection)
-            .await
+        match sqlx::query(
+            "INSERT INTO answers (content, question_id)
+            VALUES ($1, $2)
+            RETURNING id, content, question_id",
+        )
+        .bind(new_answer.content)
+        .bind(new_answer.question_id.0)
+        .map(|row: PgRow| Answer {
+            id: AnswerId(row.get("id")),
+            content: row.get("content"),
+            question_id: QuestionId(row.get("question_id")),
+        })
+        .fetch_one(&self.connection)
+        .await
         {
             Ok(answer) => Ok(answer),
             Err(e) => {

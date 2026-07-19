@@ -158,10 +158,11 @@ function loadQuestions() {
         const info = document.createElement('div');
         info.className = 'question-info';
 
-        const titleSpan = document.createElement('span');
-        titleSpan.className = 'question-title';
-        titleSpan.textContent = `#${q.id} - ${q.title}`;
-        info.appendChild(titleSpan);
+        const titleLink = document.createElement('a');
+        titleLink.className = 'question-title';
+        titleLink.href = `/question.html?id=${q.id}`;
+        titleLink.textContent = `#${q.id} - ${q.title}`;
+        info.appendChild(titleLink);
 
         if (q.tags && q.tags.length) {
           const tagsContainer = document.createElement('div');

@@ -6,6 +6,8 @@ Base URL: `http://127.0.0.1:3030`
 
 The frontend uses a simple password-based login via `POST /login`. Once logged in, the browser stores a flag in `localStorage` that gates create/delete actions. The API itself does not require authentication headers — the gating is purely client-side.
 
+`ADMIN_PASSWORD` must be set in the environment (loaded from `.env`).
+
 ---
 
 ## Endpoints
@@ -33,6 +35,57 @@ GET /questions?limit=10&offset=0
     "title": "How?",
     "content": "Please help!",
     "tags": ["general", "help"]
+  }
+]
+```
+
+---
+
+### Get Question
+
+```
+GET /questions/:id
+```
+
+**Path Parameters**
+
+| Param | Type | Description |
+|-------|------|-------------|
+| `id`  | i32  | Question ID |
+
+**Response** `200 OK`
+
+```json
+{
+  "id": 1,
+  "title": "How?",
+  "content": "Please help!",
+  "tags": ["general"]
+}
+```
+
+---
+
+### List Answers for Question
+
+```
+GET /questions/:id/answers
+```
+
+**Path Parameters**
+
+| Param | Type | Description |
+|-------|------|-------------|
+| `id`  | i32  | Question ID |
+
+**Response** `200 OK`
+
+```json
+[
+  {
+    "id": 1,
+    "content": "Try this…",
+    "question_id": 1
   }
 ]
 ```
@@ -126,6 +179,8 @@ DELETE /questions/:id
 |-------|------|------------------|
 | `id`  | i32  | Question ID      |
 
+Deletes the question and any related answers (`ON DELETE CASCADE`).
+
 **Response** `200 OK`
 
 ```
@@ -138,28 +193,27 @@ Question 1 deleted
 
 ```
 POST /answers
-Content-Type: application/x-www-form-urlencoded
+Content-Type: application/json
 ```
 
-> **Note**: This endpoint accepts form-encoded data, not JSON.
-
-**Form Fields**
+**Request Body**
 
 | Field         | Type   | Required | Description          |
 |---------------|--------|----------|----------------------|
 | `content`     | string | Yes      | Answer text          |
 | `question_id` | i32    | Yes      | Parent question ID   |
 
-```sh
-curl -X POST 'http://127.0.0.1:3030/answers' \
-  -d 'content=Only run things!!!' \
-  -d 'question_id=1'
+```json
+{
+  "content": "Only run things!!!",
+  "question_id": 1
+}
 ```
 
 **Response** `200 OK`
 
 ```
-Awnser added
+Answer added
 ```
 
 ---

@@ -2044,6 +2044,7 @@ dependencies = [
 name = "web-service"
 version = "0.1.0"
 dependencies = [
+ "dotenvy",
  "handle-errors",
  "serde",
  "serde_json",
