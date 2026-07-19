@@ -2,19 +2,20 @@
 
 ## Quick start
 
-Database must be running and migrations applied before the server starts.
+Database must be running before the server starts. Migrations run automatically on startup.
 
 ```
-just db-up          # docker run postgres
-just sqlx-migrate   # sqlx migrate run
-just server         # alias for `just run`; cargo run
+cp .env.example .env   # if needed
+just db-up             # docker run postgres
+just sqlx-migrate      # sqlx migrate run (optional; also runs on boot)
+just server            # alias for `just run`; cargo run
 ```
 
 The server binds to `http://127.0.0.1:3030`.
 
 ## Dev commands
 
-- `just server` — run the application (requires DB up + migrated)
+- `just server` — run the application (requires DB up + env vars)
 - `just test` — `cargo test`
 - `just lint` — `cargo clippy`
 - `just fmt` — `cargo fmt`
@@ -29,8 +30,9 @@ just fmt && just lint
 ## Database
 
 - PostgreSQL container started via `just db-up` (container name: `postgresql`)
-- Connection string hardcoded in `src/main.rs`: `postgres://admin:localpsql2025@localhost:5432/rustwebdev`
-- Credentials in `.env`: `POSTGRES_USER=admin`, `POSTGRES_PASSWORD=localpsql2025`
+- Connection string from env: `DATABASE_URL` (see `.env.example`)
+- Credentials in `.env`: `POSTGRES_USER`, `POSTGRES_PASSWORD`, `DATABASE_URL`, `ADMIN_PASSWORD`
+- Optional: `DB_POOL_MAX` (default `5`), `RUST_LOG`
 - Migrations embedded via `sqlx::migrate!()` and run automatically on startup in `main.rs`
 - Migration files live in `migrations/`
 
@@ -46,12 +48,13 @@ just fmt && just lint
 ## Static files
 
 - Entry page: `static/index.html` (loads `main.js`)
+- Question detail: `static/question.html` (loads `question.js`)
 - Create question: `static/new-question.html` (loads `new-question.js`)
 - Login: inline modal in `index.html`, handled by `main.js`
 - CSS: `static/style.css`
 
 ## Authentication
 
-- Simple password gate
+- Simple password gate (`ADMIN_PASSWORD` required at process start)
 - Login state stored in `localStorage` (`loggedIn` key)
-- API endpoints have no auth — gating is client-side only
+- **Known gap:** API endpoints have no server-side auth — gating is client-side only

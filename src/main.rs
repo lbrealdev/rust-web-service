@@ -10,10 +10,21 @@ mod types;
 
 #[tokio::main]
 async fn main() {
+    dotenvy::dotenv().ok();
+
     let log_filter = std::env::var("RUST_LOG")
         .unwrap_or_else(|_| "handle_errors=warn,web_service=info,warp=error".to_owned());
 
-    let store = store::Store::new("postgres://admin:localpsql2025@localhost:5432/rustwebdev").await;
+    let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    let max_connections = std::env::var("DB_POOL_MAX")
+        .ok()
+        .and_then(|v| v.parse::<u32>().ok())
+        .unwrap_or(5);
+
+    // Fail fast if admin password is missing
+    let _ = std::env::var("ADMIN_PASSWORD").expect("ADMIN_PASSWORD must be set");
+
+    let store = store::Store::new(&database_url, max_connections).await;
 
     sqlx::migrate!()
         .run(&store.clone().connection)
@@ -44,9 +55,40 @@ async fn main() {
         .and_then(routes::question::get_questions)
         .with(warp::trace(|info| {
             tracing::info_span!(
+                "get_questions request",
+                method = %info.method(),
+                path = %info.path(),
+                id = %uuid::Uuid::new_v4(),
+            )
+        }));
+
+    let get_question_answers = warp::get()
+        .and(warp::path("questions"))
+        .and(warp::path::param::<i32>())
+        .and(warp::path("answers"))
+        .and(warp::path::end())
+        .and(store_filter.clone())
+        .and_then(routes::question::get_answers)
+        .with(warp::trace(|info| {
+            tracing::info_span!(
+                "get_answers request",
+                method = %info.method(),
+                path = %info.path(),
+                id = %uuid::Uuid::new_v4(),
+            )
+        }));
+
+    let get_question = warp::get()
+        .and(warp::path("questions"))
+        .and(warp::path::param::<i32>())
+        .and(warp::path::end())
+        .and(store_filter.clone())
+        .and_then(routes::question::get_question)
+        .with(warp::trace(|info| {
+            tracing::info_span!(
                 "get_question request",
                 method = %info.method(),
-                path = %info.method(),
+                path = %info.path(),
                 id = %uuid::Uuid::new_v4(),
             )
         }));
@@ -61,7 +103,7 @@ async fn main() {
             tracing::info_span!(
                 "add_question request",
                 method = %info.method(),
-                path = %info.method(),
+                path = %info.path(),
                 id = %uuid::Uuid::new_v4(),
             )
         }));
@@ -77,7 +119,7 @@ async fn main() {
             tracing::info_span!(
                 "update_question request",
                 method = %info.method(),
-                path = %info.method(),
+                path = %info.path(),
                 id = %uuid::Uuid::new_v4(),
             )
         }));
@@ -92,7 +134,7 @@ async fn main() {
             tracing::info_span!(
                 "delete_question request",
                 method = %info.method(),
-                path = %info.method(),
+                path = %info.path(),
                 id = %uuid::Uuid::new_v4(),
             )
         }));
@@ -101,13 +143,13 @@ async fn main() {
         .and(warp::path("answers"))
         .and(warp::path::end())
         .and(store_filter.clone())
-        .and(warp::body::form())
+        .and(warp::body::json())
         .and_then(routes::answer::add_answer)
         .with(warp::trace(|info| {
             tracing::info_span!(
                 "add_answer request",
                 method = %info.method(),
-                path = %info.method(),
+                path = %info.path(),
                 id = %uuid::Uuid::new_v4(),
             )
         }));
@@ -121,7 +163,7 @@ async fn main() {
             tracing::info_span!(
                 "login request",
                 method = %info.method(),
-                path = %info.method(),
+                path = %info.path(),
                 id = %uuid::Uuid::new_v4(),
             )
         }));
@@ -133,6 +175,8 @@ async fn main() {
     let routes = index
         .or(static_files)
         .or(get_questions)
+        .or(get_question_answers)
+        .or(get_question)
         .or(add_question)
         .or(update_question)
         .or(add_answer)

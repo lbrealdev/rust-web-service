@@ -32,6 +32,20 @@ pub async fn get_questions(
     }
 }
 
+pub async fn get_question(id: i32, store: Store) -> Result<impl warp::Reply, Rejection> {
+    match store.get_question(id).await {
+        Ok(res) => Ok(warp::reply::json(&res)),
+        Err(e) => Err(custom(e)),
+    }
+}
+
+pub async fn get_answers(id: i32, store: Store) -> Result<impl warp::Reply, Rejection> {
+    match store.get_answers(id).await {
+        Ok(res) => Ok(warp::reply::json(&res)),
+        Err(e) => Err(custom(e)),
+    }
+}
+
 pub async fn add_question(
     store: Store,
     new_question: NewQuestion,

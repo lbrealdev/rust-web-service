@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#ffffff" />
+  <title>question</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div class="container">
+    <a href="/" class="back-link">← back to questions</a>
+
+    <div id="question-loading" class="empty-state">loading…</div>
+    <div id="question-error" class="form-error hidden" role="alert"></div>
+
+    <article id="question-detail" class="hidden">
+      <h1 id="question-title"></h1>
+      <div id="question-tags" class="tags-container"></div>
+      <p id="question-content" class="question-content"></p>
+    </article>
+
+    <section id="answers-section" class="answers-section hidden">
+      <h2>answers</h2>
+      <ul id="answers-list"></ul>
+
+      <form id="add-answer-form" class="add-answer-form">
+        <div class="form-section">
+          <label for="answer-content">your answer</label>
+          <textarea id="answer-content" name="content" rows="4" placeholder="write an answer…" required></textarea>
+        </div>
+        <p id="answer-error" class="form-error hidden" aria-live="polite"></p>
+        <div class="form-actions">
+          <button type="submit" id="answer-submit-btn" class="button">submit answer</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <div id="alert" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-content">
+      <p id="alert-message" aria-live="polite"></p>
+      <button id="alert-ok" class="button">ok</button>
+    </div>
+  </div>
+
+  <button class="theme-toggle" id="theme-toggle" aria-label="toggle dark mode">toggle theme</button>
+
+  <script src="/question.js"></script>
+</body>
+</html>
