@@ -38,10 +38,36 @@ function showAlert(message) {
   };
 }
 
+function showConfirm(message) {
+  return new Promise((resolve) => {
+    const modal = document.getElementById('modal');
+    const modalMessage = document.getElementById('modal-message');
+    const modalConfirm = document.getElementById('modal-confirm');
+    const modalCancel = document.getElementById('modal-cancel');
+
+    modalMessage.textContent = message;
+    modal.classList.remove('hidden');
+
+    modalConfirm.onclick = () => {
+      modal.classList.add('hidden');
+      resolve(true);
+    };
+
+    modalCancel.onclick = () => {
+      modal.classList.add('hidden');
+      resolve(false);
+    };
+  });
+}
+
 function getQuestionId() {
   const params = new URLSearchParams(window.location.search);
   const id = params.get('id');
   return id ? Number(id) : NaN;
+}
+
+function isLoggedIn() {
+  return localStorage.getItem('loggedIn') === 'true';
 }
 
 function renderQuestion(question) {
@@ -64,7 +90,7 @@ function renderQuestion(question) {
   document.getElementById('answers-section').classList.remove('hidden');
 }
 
-function renderAnswers(answers) {
+function renderAnswers(answers, questionId) {
   const list = document.getElementById('answers-list');
   list.innerHTML = '';
 
@@ -80,6 +106,9 @@ function renderAnswers(answers) {
     const li = document.createElement('li');
     li.className = 'answer-item';
 
+    const body = document.createElement('div');
+    body.className = 'answer-body';
+
     const meta = document.createElement('div');
     meta.className = 'answer-meta';
     meta.textContent = `#${answer.id}`;
@@ -88,8 +117,35 @@ function renderAnswers(answers) {
     content.className = 'answer-content';
     content.textContent = answer.content;
 
-    li.appendChild(meta);
-    li.appendChild(content);
+    body.appendChild(meta);
+    body.appendChild(content);
+    li.appendChild(body);
+
+    if (isLoggedIn()) {
+      const delBtn = document.createElement('button');
+      delBtn.textContent = 'delete';
+      delBtn.className = 'button button-delete';
+      delBtn.onclick = async () => {
+        const confirmed = await showConfirm(`delete answer #${answer.id}?`);
+        if (!confirmed) return;
+
+        try {
+          const res = await fetch(`/answers/${answer.id}`, { method: 'DELETE' });
+          if (!res.ok) {
+            showAlert(`failed to delete answer #${answer.id}.`);
+            return;
+          }
+          showAlert(`answer #${answer.id} deleted.`);
+          const answersRes = await fetch(`/questions/${questionId}/answers`);
+          const next = answersRes.ok ? await answersRes.json() : [];
+          renderAnswers(next, questionId);
+        } catch {
+          showAlert('network error.');
+        }
+      };
+      li.appendChild(delBtn);
+    }
+
     list.appendChild(li);
   });
 }
@@ -113,7 +169,7 @@ async function loadQuestion(id) {
 
     loading.classList.add('hidden');
     renderQuestion(question);
-    renderAnswers(answers);
+    renderAnswers(answers, id);
   } catch (err) {
     loading.classList.add('hidden');
     errorEl.textContent = err.message || 'failed to load question';
@@ -167,7 +223,7 @@ document.addEventListener('DOMContentLoaded', () => {
       form.reset();
       const answersRes = await fetch(`/questions/${id}/answers`);
       const answers = answersRes.ok ? await answersRes.json() : [];
-      renderAnswers(answers);
+      renderAnswers(answers, id);
       showAlert('answer added.');
     } catch (err) {
       errorEl.textContent = err.message;

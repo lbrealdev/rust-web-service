@@ -218,6 +218,26 @@ Answer added
 
 ---
 
+### Delete Answer
+
+```
+DELETE /answers/:id
+```
+
+**Path Parameters**
+
+| Param | Type | Description |
+|-------|------|-------------|
+| `id`  | i32  | Answer ID   |
+
+**Response** `200 OK`
+
+```
+Answer 1 deleted
+```
+
+---
+
 ### Login
 
 ```

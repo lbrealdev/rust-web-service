@@ -154,6 +154,21 @@ async fn main() {
             )
         }));
 
+    let delete_answer = warp::delete()
+        .and(warp::path("answers"))
+        .and(warp::path::param::<i32>())
+        .and(warp::path::end())
+        .and(store_filter.clone())
+        .and_then(routes::answer::delete_answer)
+        .with(warp::trace(|info| {
+            tracing::info_span!(
+                "delete_answer request",
+                method = %info.method(),
+                path = %info.path(),
+                id = %uuid::Uuid::new_v4(),
+            )
+        }));
+
     let login = warp::post()
         .and(warp::path("login"))
         .and(warp::path::end())
@@ -180,6 +195,7 @@ async fn main() {
         .or(add_question)
         .or(update_question)
         .or(add_answer)
+        .or(delete_answer)
         .or(login)
         .or(delete_question)
         .with(cors)
