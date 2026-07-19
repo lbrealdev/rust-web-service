@@ -217,6 +217,12 @@ document.addEventListener('DOMContentLoaded', () => {
   updateAuthUI();
   loadQuestions();
 
+  const flash = sessionStorage.getItem('flash');
+  if (flash) {
+    sessionStorage.removeItem('flash');
+    showAlert(flash);
+  }
+
   const loginBtn = document.getElementById('login-btn');
   if (loginBtn) {
     loginBtn.addEventListener('click', () => {
