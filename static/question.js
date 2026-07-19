@@ -70,6 +70,29 @@ function isLoggedIn() {
   return localStorage.getItem('loggedIn') === 'true';
 }
 
+function setEditMode(editing) {
+  const view = document.getElementById('question-view');
+  const form = document.getElementById('edit-question-form');
+  if (editing) {
+    view.classList.add('hidden');
+    form.classList.remove('hidden');
+  } else {
+    form.classList.add('hidden');
+    view.classList.remove('hidden');
+  }
+}
+
+function fillEditForm(question) {
+  document.getElementById('edit-title').value = question.title || '';
+  document.getElementById('edit-content').value = question.content || '';
+  document.getElementById('edit-tags').value = (question.tags && question.tags.length)
+    ? question.tags.join(', ')
+    : '';
+  const errorEl = document.getElementById('edit-error');
+  errorEl.textContent = '';
+  errorEl.classList.add('hidden');
+}
+
 function renderQuestion(question) {
   document.title = question.title;
   document.getElementById('question-title').textContent = `#${question.id} — ${question.title}`;
@@ -85,6 +108,16 @@ function renderQuestion(question) {
       tagsEl.appendChild(tagSpan);
     });
   }
+
+  const editBtn = document.getElementById('edit-question-btn');
+  if (isLoggedIn()) {
+    editBtn.classList.remove('hidden');
+  } else {
+    editBtn.classList.add('hidden');
+  }
+
+  fillEditForm(question);
+  setEditMode(false);
 
   document.getElementById('question-detail').classList.remove('hidden');
   document.getElementById('answers-section').classList.remove('hidden');
@@ -190,6 +223,21 @@ async function submitAnswer(id, content) {
   }
 }
 
+async function updateQuestion(id, payload) {
+  const res = await fetch(`/questions/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || 'failed to update question');
+  }
+
+  return res.json();
+}
+
 /* === Init =========================================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -203,6 +251,56 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   loadQuestion(id);
+
+  const editBtn = document.getElementById('edit-question-btn');
+  const editForm = document.getElementById('edit-question-form');
+  const editCancel = document.getElementById('edit-cancel-btn');
+  const editSaveBtn = document.getElementById('edit-save-btn');
+  const editError = document.getElementById('edit-error');
+
+  editBtn.addEventListener('click', () => {
+    if (!isLoggedIn()) {
+      showAlert('login required to edit.');
+      return;
+    }
+    setEditMode(true);
+  });
+
+  editCancel.addEventListener('click', () => {
+    setEditMode(false);
+    editError.textContent = '';
+    editError.classList.add('hidden');
+  });
+
+  editForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!isLoggedIn()) {
+      showAlert('login required to edit.');
+      return;
+    }
+
+    const title = editForm.title.value.trim();
+    const content = editForm.content.value.trim();
+    const tagsRaw = editForm.tags.value.trim();
+    const tags = tagsRaw ? tagsRaw.split(',').map((t) => t.trim()).filter(Boolean) : null;
+
+    editSaveBtn.disabled = true;
+    editSaveBtn.textContent = 'saving…';
+    editError.textContent = '';
+    editError.classList.add('hidden');
+
+    try {
+      const updated = await updateQuestion(id, { title, content, tags });
+      renderQuestion(updated);
+      showAlert('question updated.');
+    } catch (err) {
+      editError.textContent = err.message;
+      editError.classList.remove('hidden');
+    } finally {
+      editSaveBtn.disabled = false;
+      editSaveBtn.textContent = 'save';
+    }
+  });
 
   const form = document.getElementById('add-answer-form');
   const submitBtn = document.getElementById('answer-submit-btn');
