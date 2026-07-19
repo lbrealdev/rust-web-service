@@ -3,7 +3,7 @@ use sqlx::Row;
 
 use crate::types::{
     answer::{Answer, AnswerId, NewAnswer},
-    question::{NewQuestion, Question, QuestionId},
+    question::{NewQuestion, Question, QuestionId, UpdateQuestion},
 };
 use handle_errors::Error;
 
@@ -101,7 +101,7 @@ impl Store {
 
     pub async fn update_question(
         &self,
-        question: Question,
+        question: UpdateQuestion,
         question_id: i32,
     ) -> Result<Question, Error> {
         match sqlx::query(
