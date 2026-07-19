@@ -26,7 +26,7 @@
 /* === Auth gate (#65) ================================================ */
 
 if (localStorage.getItem('loggedIn') !== 'true') {
-  window.alert('login required to create a question.');
+  sessionStorage.setItem('flash', 'login required to create a question.');
   window.location.replace('/');
 }
 
