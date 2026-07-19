@@ -12,6 +12,16 @@ pub struct Store {
     pub connection: PgPool,
 }
 
+fn map_db_error(e: sqlx::Error) -> Error {
+    match e {
+        sqlx::Error::RowNotFound => Error::NotFound,
+        other => {
+            tracing::event!(tracing::Level::ERROR, "{:?}", other);
+            Error::DatabaseQueryError
+        }
+    }
+}
+
 impl Store {
     pub async fn new(db_url: &str, max_connections: u32) -> Self {
         let db_pool = match PgPoolOptions::new()
@@ -46,10 +56,7 @@ impl Store {
             .await
         {
             Ok(questions) => Ok(questions),
-            Err(e) => {
-                tracing::event!(tracing::Level::ERROR, "{:?}", e);
-                Err(Error::DatabaseQueryError)
-            }
+            Err(e) => Err(map_db_error(e)),
         }
     }
 
@@ -66,10 +73,7 @@ impl Store {
             .await
         {
             Ok(question) => Ok(question),
-            Err(e) => {
-                tracing::event!(tracing::Level::ERROR, "{:?}", e);
-                Err(Error::DatabaseQueryError)
-            }
+            Err(e) => Err(map_db_error(e)),
         }
     }
 
@@ -92,10 +96,7 @@ impl Store {
         .await
         {
             Ok(question) => Ok(question),
-            Err(e) => {
-                tracing::event!(tracing::Level::ERROR, "{:?}", e);
-                Err(Error::DatabaseQueryError)
-            }
+            Err(e) => Err(map_db_error(e)),
         }
     }
 
@@ -124,10 +125,7 @@ impl Store {
         .await
         {
             Ok(question) => Ok(question),
-            Err(e) => {
-                tracing::event!(tracing::Level::ERROR, "{:?}", e);
-                Err(Error::DatabaseQueryError)
-            }
+            Err(e) => Err(map_db_error(e)),
         }
     }
 
@@ -138,10 +136,7 @@ impl Store {
             .await
         {
             Ok(result) => Ok(result.rows_affected() > 0),
-            Err(e) => {
-                tracing::event!(tracing::Level::ERROR, "{:?}", e);
-                Err(Error::DatabaseQueryError)
-            }
+            Err(e) => Err(map_db_error(e)),
         }
     }
 
@@ -159,10 +154,7 @@ impl Store {
         .await
         {
             Ok(answers) => Ok(answers),
-            Err(e) => {
-                tracing::event!(tracing::Level::ERROR, "{:?}", e);
-                Err(Error::DatabaseQueryError)
-            }
+            Err(e) => Err(map_db_error(e)),
         }
     }
 
@@ -183,10 +175,7 @@ impl Store {
         .await
         {
             Ok(answer) => Ok(answer),
-            Err(e) => {
-                tracing::event!(tracing::Level::ERROR, "{:?}", e);
-                Err(Error::DatabaseQueryError)
-            }
+            Err(e) => Err(map_db_error(e)),
         }
     }
 
@@ -197,10 +186,7 @@ impl Store {
             .await
         {
             Ok(result) => Ok(result.rows_affected() > 0),
-            Err(e) => {
-                tracing::event!(tracing::Level::ERROR, "{:?}", e);
-                Err(Error::DatabaseQueryError)
-            }
+            Err(e) => Err(map_db_error(e)),
         }
     }
 }

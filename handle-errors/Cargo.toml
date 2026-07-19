@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 warp = "0.4"
 tracing = { version = "0.1", features = ["log"] }
+thiserror = "2"

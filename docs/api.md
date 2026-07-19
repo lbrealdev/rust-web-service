@@ -64,6 +64,8 @@ GET /questions/:id
 }
 ```
 
+**Response** `404 Not Found` — question does not exist
+
 ---
 
 ### List Answers for Question
@@ -115,11 +117,18 @@ Content-Type: application/json
 }
 ```
 
-**Response** `200 OK`
+**Response** `201 Created`
 
+```json
+{
+  "id": 1,
+  "title": "New question",
+  "content": "How does this work?",
+  "tags": ["rust", "warp"]
+}
 ```
-Question added
-```
+
+**Response** `400 Bad Request` — empty `title` or `content`
 
 ---
 
@@ -165,6 +174,10 @@ The question id comes from the path only (not the body).
 }
 ```
 
+**Response** `400 Bad Request` — empty `title` or `content`
+
+**Response** `404 Not Found` — question does not exist
+
 ---
 
 ### Delete Question
@@ -186,6 +199,8 @@ Deletes the question and any related answers (`ON DELETE CASCADE`).
 ```
 Question 1 deleted
 ```
+
+**Response** `404 Not Found` — question does not exist
 
 ---
 
@@ -210,11 +225,17 @@ Content-Type: application/json
 }
 ```
 
-**Response** `200 OK`
+**Response** `201 Created`
 
+```json
+{
+  "id": 1,
+  "content": "Only run things!!!",
+  "question_id": 1
+}
 ```
-Answer added
-```
+
+**Response** `400 Bad Request` — empty `content`
 
 ---
 
@@ -235,6 +256,8 @@ DELETE /answers/:id
 ```
 Answer 1 deleted
 ```
+
+**Response** `404 Not Found` — answer does not exist
 
 ---
 
