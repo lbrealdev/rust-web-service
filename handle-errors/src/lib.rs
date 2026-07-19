@@ -79,7 +79,7 @@ pub async fn return_error(r: Rejection) -> Result<impl Reply, Rejection> {
 }
 
 #[cfg(test)]
-mod tests {
+mod handle_errors_tests {
     use super::*;
     use warp::reply::Reply;
 
