@@ -34,6 +34,7 @@ Required env vars (see `.env.example`):
 | PUT | `/questions/:id` | Update question |
 | DELETE | `/questions/:id` | Delete question (cascades answers) |
 | POST | `/answers` | Add answer (JSON) |
+| DELETE | `/answers/:id` | Delete answer |
 | POST | `/login` | Admin login |
 
 See [docs/api.md](docs/api.md) for full request/response schemas.

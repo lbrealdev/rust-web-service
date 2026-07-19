@@ -12,3 +12,13 @@ pub async fn add_answer(
         Err(e) => Err(warp::reject::custom(e)),
     }
 }
+
+pub async fn delete_answer(id: i32, store: Store) -> Result<impl warp::Reply, warp::Rejection> {
+    match store.delete_answer(id).await {
+        Ok(_) => Ok(warp::reply::with_status(
+            format!("Answer {} deleted", id),
+            StatusCode::OK,
+        )),
+        Err(e) => Err(warp::reject::custom(e)),
+    }
+}

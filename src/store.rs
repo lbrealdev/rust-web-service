@@ -189,4 +189,18 @@ impl Store {
             }
         }
     }
+
+    pub async fn delete_answer(&self, answer_id: i32) -> Result<bool, Error> {
+        match sqlx::query("DELETE FROM answers WHERE id = $1")
+            .bind(answer_id)
+            .execute(&self.connection)
+            .await
+        {
+            Ok(result) => Ok(result.rows_affected() > 0),
+            Err(e) => {
+                tracing::event!(tracing::Level::ERROR, "{:?}", e);
+                Err(Error::DatabaseQueryError)
+            }
+        }
+    }
 }

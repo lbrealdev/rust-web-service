@@ -534,8 +534,17 @@ a.question-title:hover {
 }
 
 .answer-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
   padding: 1rem 0;
   border-bottom: 1px solid var(--border);
+}
+
+.answer-body {
+  flex: 1;
+  min-width: 0;
 }
 
 .answer-meta {
