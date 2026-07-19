@@ -138,16 +138,16 @@ Content-Type: application/json
 
 **Request Body**
 
+The question id comes from the path only (not the body).
+
 | Field     | Type             | Required | Description          |
 |-----------|------------------|----------|----------------------|
-| `id`      | i32              | Yes      | Question ID          |
 | `title`   | string           | Yes      | Updated title        |
 | `content` | string           | Yes      | Updated content      |
 | `tags`    | string[] \| null | No       | Updated tags         |
 
 ```json
 {
-  "id": 1,
   "title": "Updated title",
   "content": "Updated content",
   "tags": ["updated"]

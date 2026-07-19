@@ -8,7 +8,7 @@ use warp::{
 
 use crate::store::Store;
 use crate::types::pagination::{extraction_pagination, Pagination};
-use crate::types::question::{NewQuestion, Question};
+use crate::types::question::{NewQuestion, UpdateQuestion};
 
 #[instrument]
 pub async fn get_questions(
@@ -62,7 +62,7 @@ pub async fn add_question(
 pub async fn update_question(
     id: i32,
     store: Store,
-    question: Question,
+    question: UpdateQuestion,
 ) -> Result<impl warp::Reply, Rejection> {
     match store.update_question(question, id).await {
         Ok(res) => Ok(warp::reply::json(&res)),
