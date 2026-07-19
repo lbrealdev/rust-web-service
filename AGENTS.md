@@ -16,15 +16,22 @@ The server binds to `http://127.0.0.1:3030`.
 ## Dev commands
 
 - `just server` — run the application (requires DB up + env vars)
-- `just test` — `cargo test`
+- `just test` — `cargo test` (foundation unit tests; no DB required)
+- `just test-filter FILTER` — `cargo test FILTER`
 - `just lint` — `cargo clippy`
 - `just fmt` — `cargo fmt`
 - `just watch` — `watchexec` auto-restart on file change
 
+## Testing
+
+- Foundation unit tests cover `extraction_pagination` and `handle-errors` (no Postgres).
+- Use `just test` (workspace) or e.g. `just test-filter pagination` / `just test-filter return_error`.
+- Store / Warp integration tests against a live DB are not in-tree yet (follow-up).
+
 ## Before committing
 
 ```
-just fmt && just lint
+just fmt && just lint && just test
 ```
 
 ## Database

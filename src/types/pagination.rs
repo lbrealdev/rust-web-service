@@ -1,37 +1,21 @@
 use handle_errors::Error;
 use std::collections::HashMap;
 
-/// Pagination struct that is getting extracted
-/// from query params
-#[derive(Default, Debug)]
+/// Pagination struct extracted from query params.
+#[derive(Default, Debug, PartialEq, Eq)]
 pub struct Pagination {
-    /// The index of the first item that has to be returned
+    /// Max number of items to return (when provided with `offset`).
     pub limit: Option<i32>,
-    /// The index of the last item that has to be returned
+    /// Number of items to skip.
     pub offset: i32,
 }
 
-/// Extract query parameters from `/questions` route
-/// # Example query
-/// GET requests to this route can have a pagination attached so we just
-/// return the questions we need
-/// `/questions?start=1&end=10`
-/// # Example usage
-/// ```rust
-/// use std::collections::HashMap;
+/// Extract pagination from `/questions` query params.
 ///
-/// let mut query = HashMap::new();
-/// query.insert("limit".to_string(), "1".to_string());
-/// query.insert("offset".to_string(), "10".to_string());
-/// let p = types::pagination::extract_pagination(query).unwrap();
-/// assert_eq!(p.limit, Some(1));
-/// assert_eq!(p.offset, 10):
-///```
+/// Both `limit` and `offset` must be present together, e.g. `/questions?limit=10&offset=0`.
 pub fn extraction_pagination(params: HashMap<String, String>) -> Result<Pagination, Error> {
-    // Could be improved in the future
     if params.contains_key("limit") && params.contains_key("offset") {
         return Ok(Pagination {
-            // Takes the "limit" parameter in the query and tries to convert it to a number
             limit: Some(
                 params
                     .get("limit")
@@ -39,7 +23,6 @@ pub fn extraction_pagination(params: HashMap<String, String>) -> Result<Paginati
                     .parse::<i32>()
                     .map_err(Error::ParseError)?,
             ),
-            // Takes the "offset" parameter in the query and tries to convert it to a number
             offset: params
                 .get("offset")
                 .unwrap()
@@ -49,4 +32,58 @@ pub fn extraction_pagination(params: HashMap<String, String>) -> Result<Paginati
     }
 
     Err(Error::MissingParameters)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn params(pairs: &[(&str, &str)]) -> HashMap<String, String> {
+        pairs
+            .iter()
+            .map(|(k, v)| (k.to_string(), v.to_string()))
+            .collect()
+    }
+
+    #[test]
+    fn extracts_limit_and_offset() {
+        let p = extraction_pagination(params(&[("limit", "10"), ("offset", "5")])).unwrap();
+        assert_eq!(
+            p,
+            Pagination {
+                limit: Some(10),
+                offset: 5,
+            }
+        );
+    }
+
+    #[test]
+    fn missing_both_returns_missing_parameters() {
+        let err = extraction_pagination(HashMap::new()).unwrap_err();
+        assert!(matches!(err, Error::MissingParameters));
+    }
+
+    #[test]
+    fn missing_offset_returns_missing_parameters() {
+        let err = extraction_pagination(params(&[("limit", "10")])).unwrap_err();
+        assert!(matches!(err, Error::MissingParameters));
+    }
+
+    #[test]
+    fn missing_limit_returns_missing_parameters() {
+        let err = extraction_pagination(params(&[("offset", "0")])).unwrap_err();
+        assert!(matches!(err, Error::MissingParameters));
+    }
+
+    #[test]
+    fn non_numeric_limit_returns_parse_error() {
+        let err = extraction_pagination(params(&[("limit", "x"), ("offset", "0")])).unwrap_err();
+        assert!(matches!(err, Error::ParseError(_)));
+    }
+
+    #[test]
+    fn non_numeric_offset_returns_parse_error() {
+        let err = extraction_pagination(params(&[("limit", "1"), ("offset", "x")])).unwrap_err();
+        assert!(matches!(err, Error::ParseError(_)));
+    }
 }

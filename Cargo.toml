@@ -1,3 +1,7 @@
+[workspace]
+members = [".", "handle-errors"]
+resolver = "2"
+
 [package]
 name = "web-service"
 version = "0.1.0"
