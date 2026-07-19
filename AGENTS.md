@@ -5,7 +5,7 @@
 Database must be running before the server starts. Migrations run automatically on startup.
 
 ```
-cp .env.example .env   # if needed
+cp .env.example .env   # required: DATABASE_URL + ADMIN_PASSWORD
 just db-up             # docker run postgres
 just sqlx-migrate      # sqlx migrate run (optional; also runs on boot)
 just server            # alias for `just run`; cargo run
@@ -55,6 +55,11 @@ just fmt && just lint
 
 ## Authentication
 
-- Simple password gate (`ADMIN_PASSWORD` required at process start)
+- `ADMIN_PASSWORD` is required at process start (no default)
 - Login state stored in `localStorage` (`loggedIn` key)
-- **Known gap:** API endpoints have no server-side auth — gating is client-side only
+- UI shows create/edit/delete when logged in; create page redirects to `/` if logged out (flash message on home)
+
+### Known gaps
+
+- **No server-side API auth** — mutating endpoints are publicly callable without credentials; UI gating is cosmetic only (tracked as #63)
+- Do not treat client-side `localStorage` as security
