@@ -1,45 +1,62 @@
+use std::num::ParseIntError;
+
+use thiserror::Error;
+use tracing::{event, instrument, Level};
 use warp::{
-    filters::{cors::CorsForbidden, body::BodyDeserializeError},
+    filters::{body::BodyDeserializeError, cors::CorsForbidden},
+    http::StatusCode,
     reject::Reject,
     Rejection, Reply,
-    http::StatusCode
 };
 
-use tracing::{event, Level, instrument};
-use std::num::ParseIntError;
-use std::fmt::Display;
-
-#[derive(Debug)]
+#[derive(Debug, Error)]
 pub enum Error {
-    ParseError(ParseIntError),
+    #[error("Cannot parse parameter: {0}")]
+    ParseError(#[from] ParseIntError),
+    #[error("Missing parameter")]
     MissingParameters,
+    #[error("{0}")]
+    ValidationError(String),
+    #[error("Unauthorized")]
+    Unauthorized,
+    #[error("Not found")]
+    NotFound,
+    #[error("Cannot update, invalid data.")]
     DatabaseQueryError,
-}
-
-impl Display for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        match &*self {
-            Error::ParseError(ref err) => {
-                write!(f, "Cannot parse parameter: {}", err)
-            },
-            Error::MissingParameters => write!(f, "Missing parameter"),
-            Error::DatabaseQueryError => {
-                write!(f, "Cannot update, invalid data.")
-            },
-        }
-    }
+    #[error("Internal server error")]
+    InternalServerError,
 }
 
 impl Reject for Error {}
 
+fn status_for_error(error: &Error) -> StatusCode {
+    match error {
+        Error::ParseError(_) | Error::MissingParameters | Error::ValidationError(_) => {
+            StatusCode::BAD_REQUEST
+        }
+        Error::Unauthorized => StatusCode::UNAUTHORIZED,
+        Error::NotFound => StatusCode::NOT_FOUND,
+        Error::DatabaseQueryError => StatusCode::UNPROCESSABLE_ENTITY,
+        Error::InternalServerError => StatusCode::INTERNAL_SERVER_ERROR,
+    }
+}
+
 #[instrument]
 pub async fn return_error(r: Rejection) -> Result<impl Reply, Rejection> {
-    if let Some(crate::Error::DatabaseQueryError) = r.find() {
-        event!(Level::ERROR, "Database query error");
-        Ok(warp::reply::with_status(
-            crate::Error::DatabaseQueryError.to_string(),
-            StatusCode::UNPROCESSABLE_ENTITY,
-        ))
+    if let Some(error) = r.find::<Error>() {
+        let status = status_for_error(error);
+        match error {
+            Error::DatabaseQueryError | Error::InternalServerError => {
+                event!(Level::ERROR, "{}", error);
+            }
+            Error::NotFound => {
+                event!(Level::WARN, "{}", error);
+            }
+            _ => {
+                event!(Level::ERROR, "{}", error);
+            }
+        }
+        Ok(warp::reply::with_status(error.to_string(), status))
     } else if let Some(error) = r.find::<CorsForbidden>() {
         event!(Level::ERROR, "CORS forbidden error: {}", error);
         Ok(warp::reply::with_status(
@@ -48,12 +65,6 @@ pub async fn return_error(r: Rejection) -> Result<impl Reply, Rejection> {
         ))
     } else if let Some(error) = r.find::<BodyDeserializeError>() {
         event!(Level::ERROR, "Cannot deserizalize request body: {}", error);
-        Ok(warp::reply::with_status(
-            error.to_string(),
-            StatusCode::UNPROCESSABLE_ENTITY,
-        ))
-    } else if let Some(error) = r.find::<Error>() {
-        event!(Level::ERROR, "{}", error);
         Ok(warp::reply::with_status(
             error.to_string(),
             StatusCode::UNPROCESSABLE_ENTITY,
