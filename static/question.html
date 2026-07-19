@@ -15,9 +15,35 @@
     <div id="question-error" class="form-error hidden" role="alert"></div>
 
     <article id="question-detail" class="hidden">
-      <h1 id="question-title"></h1>
-      <div id="question-tags" class="tags-container"></div>
-      <p id="question-content" class="question-content"></p>
+      <div id="question-view">
+        <div class="question-header">
+          <h1 id="question-title"></h1>
+          <button type="button" id="edit-question-btn" class="button button-delete hidden">edit</button>
+        </div>
+        <div id="question-tags" class="tags-container"></div>
+        <p id="question-content" class="question-content"></p>
+      </div>
+
+      <form id="edit-question-form" class="edit-question-form hidden">
+        <h2>edit question</h2>
+        <div class="form-section">
+          <label for="edit-title">title</label>
+          <input type="text" id="edit-title" name="title" autocomplete="off" required />
+        </div>
+        <div class="form-section">
+          <label for="edit-content">content</label>
+          <textarea id="edit-content" name="content" rows="6" autocomplete="off" required></textarea>
+        </div>
+        <div class="form-section">
+          <label for="edit-tags">tags (comma separated)</label>
+          <input type="text" id="edit-tags" name="tags" autocomplete="off" />
+        </div>
+        <p id="edit-error" class="form-error hidden" aria-live="polite"></p>
+        <div class="form-actions">
+          <button type="submit" id="edit-save-btn" class="button">save</button>
+          <button type="button" id="edit-cancel-btn" class="button">cancel</button>
+        </div>
+      </form>
     </article>
 
     <section id="answers-section" class="answers-section hidden">

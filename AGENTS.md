@@ -48,7 +48,7 @@ just fmt && just lint
 ## Static files
 
 - Entry page: `static/index.html` (loads `main.js`)
-- Question detail: `static/question.html` (loads `question.js`)
+- Question detail: `static/question.html` (loads `question.js`) — view, edit (logged-in), answers
 - Create question: `static/new-question.html` (loads `new-question.js`)
 - Login: inline modal in `index.html`, handled by `main.js`
 - CSS: `static/style.css`
