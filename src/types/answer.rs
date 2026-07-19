@@ -7,6 +7,8 @@ pub struct Answer {
     pub id: AnswerId,
     pub content: String,
     pub question_id: QuestionId,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub author_id: Option<i32>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Eq, Hash, Clone, PartialEq)]

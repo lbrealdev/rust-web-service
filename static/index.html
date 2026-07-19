@@ -12,7 +12,9 @@
     <div class="auth-bar">
       <h1>all questions</h1>
       <div>
+        <span id="auth-label" class="auth-label hidden"></span>
         <button class="button hidden" id="login-btn">login</button>
+        <button class="button hidden" id="guest-btn">continue with token</button>
         <button class="button hidden" id="logout-btn">logout</button>
       </div>
     </div>
@@ -43,11 +45,16 @@
 
   <div id="login-modal" class="modal hidden" role="dialog" aria-modal="true">
     <div class="modal-content">
-      <p>enter admin password to manage questions</p>
+      <p>sign in with username &amp; password, or paste a sign-in token</p>
       <form id="login-form">
+        <label for="username" class="sr-only">username</label>
+        <input type="text" id="username" name="username" placeholder="username" autocomplete="username" />
         <label for="password" class="sr-only">password</label>
-        <input type="password" id="password" name="password" placeholder="password" autocomplete="current-password" required />
+        <input type="password" id="password" name="password" placeholder="password" autocomplete="current-password" />
+        <label for="sign-in-token" class="sr-only">sign-in token</label>
+        <input type="text" id="sign-in-token" name="sign_in_token" placeholder="sign-in token (optional)" autocomplete="off" />
         <button type="submit" class="button" id="login-submit-btn">login</button>
+        <button type="button" class="button" id="register-btn">register</button>
         <p id="login-error" class="form-error hidden" role="alert"></p>
       </form>
       <button type="button" id="login-cancel" class="button">cancel</button>
@@ -56,6 +63,7 @@
 
   <button class="theme-toggle" id="theme-toggle" aria-label="toggle dark mode">toggle theme</button>
 
+  <script src="/auth.js"></script>
   <script src="/main.js"></script>
 </body>
 </html>

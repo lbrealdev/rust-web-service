@@ -60,18 +60,38 @@ function showConfirm(message) {
   });
 }
 
+function displayName(user) {
+  if (!user) return '';
+  return user.username || user.display_name || user.role || 'user';
+}
+
 function showLoginPrompt() {
   const loginModal = document.getElementById('login-modal');
   const loginForm = document.getElementById('login-form');
   const loginError = document.getElementById('login-error');
   const loginCancel = document.getElementById('login-cancel');
   const loginSubmitBtn = document.getElementById('login-submit-btn');
-  const passwordInput = loginForm.password;
+  const registerBtn = document.getElementById('register-btn');
 
   loginModal.classList.remove('hidden');
   loginError.textContent = '';
   loginError.classList.add('hidden');
-  passwordInput.focus();
+
+  const finish = (data, message) => {
+    setSession(data.token, data.user);
+    if (data.sign_in_token) {
+      localStorage.setItem('signInToken', data.sign_in_token);
+      showAlert(
+        `${message} Save your sign-in token (shown once in settings/storage): ${data.sign_in_token}`
+      );
+    } else {
+      showAlert(message);
+    }
+    loginModal.classList.add('hidden');
+    loginForm.reset();
+    updateAuthUI();
+    loadQuestions();
+  };
 
   loginCancel.onclick = () => {
     loginModal.classList.add('hidden');
@@ -83,64 +103,131 @@ function showLoginPrompt() {
 
   loginForm.onsubmit = async (e) => {
     e.preventDefault();
-    const password = passwordInput.value;
+    const username = loginForm.username.value.trim();
+    const password = loginForm.password.value;
+    const sign_in_token = loginForm.sign_in_token.value.trim();
 
     loginSubmitBtn.disabled = true;
     loginSubmitBtn.textContent = 'logging in…';
+    loginError.classList.add('hidden');
 
     try {
+      const body = sign_in_token
+        ? { sign_in_token }
+        : { username, password };
       const res = await fetch('/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password })
+        body: JSON.stringify(body)
       });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        localStorage.setItem('loggedIn', 'true');
-        loginModal.classList.add('hidden');
-        loginError.textContent = '';
-        loginError.classList.add('hidden');
-        passwordInput.value = '';
-        updateAuthUI();
-        loadQuestions();
-        showAlert('logged in successfully.');
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.token) {
+        finish(data, 'logged in successfully.');
       } else {
-        loginError.textContent = data.message || 'login failed';
+        loginError.textContent = data || 'login failed';
+        if (typeof data === 'object' && data.message) {
+          loginError.textContent = data.message;
+        } else if (typeof data === 'string') {
+          loginError.textContent = data;
+        } else {
+          loginError.textContent = 'login failed';
+        }
         loginError.classList.remove('hidden');
-        passwordInput.value = '';
-        passwordInput.focus();
       }
-  } catch (err) {
-    loginError.textContent = 'network error';
-    loginError.classList.remove('hidden');
-  } finally {
+    } catch (err) {
+      loginError.textContent = 'network error';
+      loginError.classList.remove('hidden');
+    } finally {
       loginSubmitBtn.disabled = false;
       loginSubmitBtn.textContent = 'login';
     }
   };
+
+  registerBtn.onclick = async () => {
+    const username = loginForm.username.value.trim();
+    const password = loginForm.password.value;
+    loginError.classList.add('hidden');
+    registerBtn.disabled = true;
+    try {
+      const res = await fetch('/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const text = await res.text();
+      let data = {};
+      try {
+        data = JSON.parse(text);
+      } catch {
+        data = { message: text };
+      }
+      if (res.ok && data.token) {
+        finish(data, 'account created.');
+      } else {
+        loginError.textContent = data.message || text || 'register failed';
+        loginError.classList.remove('hidden');
+      }
+    } catch {
+      loginError.textContent = 'network error';
+      loginError.classList.remove('hidden');
+    } finally {
+      registerBtn.disabled = false;
+    }
+  };
+}
+
+async function continueWithGuestToken() {
+  try {
+    const res = await fetch('/auth/guest-token', { method: 'POST' });
+    const data = await res.json();
+    if (!res.ok || !data.token) {
+      showAlert('could not create guest token.');
+      return;
+    }
+    setSession(data.token, data.user);
+    if (data.sign_in_token) {
+      localStorage.setItem('signInToken', data.sign_in_token);
+      showAlert(
+        `guest session created. save your sign-in token to return later:\n${data.sign_in_token}`
+      );
+    }
+    updateAuthUI();
+    loadQuestions();
+  } catch {
+    showAlert('network error.');
+  }
 }
 
 function updateAuthUI() {
-  const loggedIn = localStorage.getItem('loggedIn') === 'true';
+  const loggedIn = isLoggedIn();
   const createBtn = document.getElementById('create-question-btn');
   const logoutBtn = document.getElementById('logout-btn');
   const loginBtn = document.getElementById('login-btn');
+  const guestBtn = document.getElementById('guest-btn');
+  const authLabel = document.getElementById('auth-label');
 
   if (loggedIn) {
     if (createBtn) createBtn.classList.remove('hidden');
     if (logoutBtn) logoutBtn.classList.remove('hidden');
     if (loginBtn) loginBtn.classList.add('hidden');
+    if (guestBtn) guestBtn.classList.add('hidden');
+    if (authLabel) {
+      authLabel.textContent = displayName(getAuthUser());
+      authLabel.classList.remove('hidden');
+    }
   } else {
     if (createBtn) createBtn.classList.add('hidden');
     if (logoutBtn) logoutBtn.classList.add('hidden');
     if (loginBtn) loginBtn.classList.remove('hidden');
+    if (guestBtn) guestBtn.classList.remove('hidden');
+    if (authLabel) authLabel.classList.add('hidden');
   }
 }
 
 function loadQuestions() {
   fetch('/questions')
-    .then(res => res.json())
-    .then(questions => {
+    .then((res) => res.json())
+    .then((questions) => {
       const list = document.getElementById('questions-list');
       list.innerHTML = '';
 
@@ -152,7 +239,8 @@ function loadQuestions() {
         return;
       }
 
-      questions.forEach(q => {
+      const me = getAuthUser();
+      questions.forEach((q) => {
         const li = document.createElement('li');
 
         const info = document.createElement('div');
@@ -167,7 +255,7 @@ function loadQuestions() {
         if (q.tags && q.tags.length) {
           const tagsContainer = document.createElement('div');
           tagsContainer.className = 'tags-container';
-          q.tags.forEach(tag => {
+          q.tags.forEach((tag) => {
             const tagSpan = document.createElement('span');
             tagSpan.className = 'tag-pill';
             tagSpan.textContent = tag;
@@ -178,7 +266,12 @@ function loadQuestions() {
 
         li.appendChild(info);
 
-        if (localStorage.getItem('loggedIn') === 'true') {
+        const canDelete =
+          isLoggedIn() &&
+          me &&
+          (me.role === 'admin' || me.id === q.author_id);
+
+        if (canDelete) {
           const delBtn = document.createElement('button');
           delBtn.textContent = 'delete';
           delBtn.className = 'button button-delete';
@@ -186,11 +279,14 @@ function loadQuestions() {
           delBtn.onclick = async () => {
             const confirmDelete = await showConfirm(`delete question #${q.id}?`);
             if (confirmDelete) {
-              fetch(`/questions/${q.id}`, { method: 'DELETE' })
-                .then(res => {
+              apiFetch(`/questions/${q.id}`, { method: 'DELETE' })
+                .then((res) => {
                   if (res.ok) {
                     showAlert(`question #${q.id} deleted.`);
                     loadQuestions();
+                  } else if (res.status === 401) {
+                    updateAuthUI();
+                    showAlert('session expired — please log in again.');
                   } else {
                     showAlert(`failed to delete question #${q.id}.`);
                   }
@@ -205,7 +301,7 @@ function loadQuestions() {
         list.appendChild(li);
       });
     })
-    .catch(err => {
+    .catch((err) => {
       console.error('error loading questions:', err);
       showAlert('failed to load questions.');
     });
@@ -230,10 +326,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  const guestBtn = document.getElementById('guest-btn');
+  if (guestBtn) {
+    guestBtn.addEventListener('click', () => {
+      continueWithGuestToken();
+    });
+  }
+
   const logoutBtn = document.getElementById('logout-btn');
   if (logoutBtn) {
-    logoutBtn.addEventListener('click', () => {
-      localStorage.removeItem('loggedIn');
+    logoutBtn.addEventListener('click', async () => {
+      await logoutRequest();
       updateAuthUI();
       loadQuestions();
       showAlert('logged out.');
