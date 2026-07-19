@@ -4,7 +4,7 @@ A Q&A web service built with Rust (Warp + Tokio + SQLx + PostgreSQL).
 
 ## Quick start
 
-Copy `.env.example` to `.env` and adjust values as needed:
+Copy [`.env.example`](.env.example) to `.env` and adjust values as needed:
 
 ```sh
 cp .env.example .env
@@ -30,20 +30,22 @@ Required env vars (see `.env.example`):
 | GET | `/questions` | List questions (`?limit=&offset=`) |
 | GET | `/questions/:id` | Get a single question |
 | GET | `/questions/:id/answers` | List answers for a question |
-| POST | `/questions` | Create question |
+| POST | `/questions` | Create question (`201` + JSON body) |
 | PUT | `/questions/:id` | Update question |
 | DELETE | `/questions/:id` | Delete question (cascades answers) |
-| POST | `/answers` | Add answer (JSON) |
+| POST | `/answers` | Add answer (`201` + JSON body) |
 | DELETE | `/answers/:id` | Delete answer |
 | POST | `/login` | Admin login |
 
-See [docs/api.md](docs/api.md) for full request/response schemas.
+Common statuses: creates return `201`, missing resources return `404`, empty title/content return `400`. See [docs/api.md](docs/api.md) for full request/response schemas.
 
 ## Authentication
 
-The UI includes a simple login gate. Once logged in, the **Create New Question** button and **Delete** buttons become visible. This is **client-side only** — the API itself has no auth middleware. Anyone can call mutating endpoints directly.
+The UI includes a simple login gate. Once logged in, create/edit/delete controls become visible (including edit on the question detail page). Create-question (`/new-question.html`) redirects home if you are not logged in.
 
-The password is read from `ADMIN_PASSWORD` in `.env` (required at startup).
+This gating is **client-side only**. The API has **no auth middleware** — anyone can call mutating endpoints directly. Server-side auth is a known gap (see issue #63).
+
+The password is read from `ADMIN_PASSWORD` in `.env` (required at startup; copy from `.env.example`).
 
 ## Dev commands
 
