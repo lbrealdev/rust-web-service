@@ -44,6 +44,10 @@ alias sqlx-status := sqlx-migrate-info
 @test-filter FILTER:
     cargo test --workspace {{FILTER}}
 
+# DB-backed store + Warp integration tests (requires Postgres + DATABASE_URL)
+@test-db:
+    cargo test --test integration -- --ignored --test-threads=1
+
 @lint:
     cargo clippy
 
