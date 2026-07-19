@@ -39,7 +39,10 @@ alias sqlx-status := sqlx-migrate-info
     cargo run
 
 @test:
-    cargo test
+    cargo test --workspace
+
+@test-filter FILTER:
+    cargo test --workspace {{FILTER}}
 
 @lint:
     cargo clippy

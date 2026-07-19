@@ -9,3 +9,7 @@ edition = "2021"
 warp = "0.4"
 tracing = { version = "0.1", features = ["log"] }
 thiserror = "2"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["macros", "rt"] }
+http-body-util = "0.1"
