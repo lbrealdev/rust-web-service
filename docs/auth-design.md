@@ -211,6 +211,22 @@ Primary implementation: `routstr/auth.py` (`validate_bearer_key`), plus wallet/b
 - [x] Docs: `.env.example`, AGENTS.md, README, `docs/auth-design.md`
 - [ ] Close/supersede #63 against this design (via PR)
 
+## Reference examples (external)
+
+Apps and repos discussed while designing auth — recorded here so the ideas stay easy to revisit:
+
+| Link | Notes |
+|------|--------|
+| https://ppq.ai/ | Credit id / API key identity; no registration required |
+| https://nano-gpt.com/auth/signin | Multi-method login + sign-in token (session/account restore) |
+| https://stacker.news/ | Multi-method crypto login (Lightning, Nostr, email, OAuth) |
+| https://github.com/stackernews/stacker.news | SN source: challenge–response, linkable auth methods on one user |
+| https://routstr.com/ | Bearer / Cashu token identity; pay-per-request AI |
+| https://github.com/Routstr | Routstr organization |
+| https://github.com/Routstr/routstr-core | Core auth (`routstr/auth.py`): hashed bearers, `sk-` keys |
+
+These informed Phase A (`token` users vs full accounts, anonymous read-only) and later ideas (Nostr as a login method, optional Cashu/pay flows).
+
 ## Sources
 
 - Stacker News: https://github.com/stackernews/stacker.news (`lib/auth.js`, `pages/api/auth/[...nextauth].js`, `pages/api/lnauth.js`, Prisma `User` / `LnAuth` / `Account`)
