@@ -4,9 +4,23 @@ Base URL: `http://127.0.0.1:3030`
 
 ## Authentication
 
-The frontend uses a simple password-based login via `POST /login`. Once logged in, the browser stores a flag in `localStorage` that gates create/delete actions. The API itself does not require authentication headers — the gating is purely client-side.
+Mutating endpoints require:
 
-`ADMIN_PASSWORD` must be set in the environment (loaded from `.env`).
+```
+Authorization: Bearer <session_token>
+```
+
+| Path | Body | Notes |
+|------|------|-------|
+| `POST /register` | `{ "username", "password" }` | Creates `user`; returns session |
+| `POST /login` | `{ "username", "password" }` **or** `{ "sign_in_token" }` | Returns `{ token, user }` |
+| `POST /auth/guest-token` | (empty) | Creates `token` user; returns `{ token, user, sign_in_token }` once |
+| `POST /logout` | — | Revokes session |
+| `GET /me` | — | Current user |
+
+Anonymous GET access remains open. Ownership: non-admins may only modify their own content (`403` otherwise). Design notes: [auth-design.md](auth-design.md).
+
+Bootstrap admin: `BOOTSTRAP_ADMIN_USERNAME` + `BOOTSTRAP_ADMIN_PASSWORD` (or legacy `ADMIN_PASSWORD`).
 
 ---
 

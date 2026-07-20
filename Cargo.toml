@@ -21,3 +21,9 @@ tracing = { version = "0.1", features = ["log"] }
 tracing-subscriber = { version = "0.3", features = ["env-filter"]}
 sqlx = { version = "0.8.6", features = [ "runtime-tokio-rustls", "migrate", "postgres" ] }
 dotenvy = "0.15"
+argon2 = "0.5"
+password-hash = "0.5"
+rand = "0.8"
+sha2 = "0.10"
+hex = "0.4"
+once_cell = "1"

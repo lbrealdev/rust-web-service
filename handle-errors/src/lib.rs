@@ -19,6 +19,12 @@ pub enum Error {
     ValidationError(String),
     #[error("Unauthorized")]
     Unauthorized,
+    #[error("Forbidden")]
+    Forbidden,
+    #[error("{0}")]
+    Conflict(String),
+    #[error("Too many requests")]
+    TooManyRequests,
     #[error("Not found")]
     NotFound,
     #[error("Cannot update, invalid data.")]
@@ -35,6 +41,9 @@ pub(crate) fn status_for_error(error: &Error) -> StatusCode {
             StatusCode::BAD_REQUEST
         }
         Error::Unauthorized => StatusCode::UNAUTHORIZED,
+        Error::Forbidden => StatusCode::FORBIDDEN,
+        Error::Conflict(_) => StatusCode::CONFLICT,
+        Error::TooManyRequests => StatusCode::TOO_MANY_REQUESTS,
         Error::NotFound => StatusCode::NOT_FOUND,
         Error::DatabaseQueryError => StatusCode::UNPROCESSABLE_ENTITY,
         Error::InternalServerError => StatusCode::INTERNAL_SERVER_ERROR,
@@ -49,7 +58,7 @@ pub async fn return_error(r: Rejection) -> Result<impl Reply, Rejection> {
             Error::DatabaseQueryError | Error::InternalServerError => {
                 event!(Level::ERROR, "{}", error);
             }
-            Error::NotFound => {
+            Error::NotFound | Error::Unauthorized | Error::Forbidden => {
                 event!(Level::WARN, "{}", error);
             }
             _ => {
@@ -101,6 +110,15 @@ mod handle_errors_tests {
         assert_eq!(
             status_for_error(&Error::Unauthorized),
             StatusCode::UNAUTHORIZED
+        );
+        assert_eq!(status_for_error(&Error::Forbidden), StatusCode::FORBIDDEN);
+        assert_eq!(
+            status_for_error(&Error::Conflict("taken".into())),
+            StatusCode::CONFLICT
+        );
+        assert_eq!(
+            status_for_error(&Error::TooManyRequests),
+            StatusCode::TOO_MANY_REQUESTS
         );
         assert_eq!(status_for_error(&Error::NotFound), StatusCode::NOT_FOUND);
         assert_eq!(

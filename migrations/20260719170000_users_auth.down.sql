@@ -1,0 +1,5 @@
+ALTER TABLE answers DROP COLUMN IF EXISTS author_id;
+ALTER TABLE questions DROP COLUMN IF EXISTS author_id;
+DROP TABLE IF EXISTS sign_in_tokens;
+DROP TABLE IF EXISTS sessions;
+DROP TABLE IF EXISTS users;

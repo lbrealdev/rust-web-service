@@ -11,6 +11,7 @@ use warp::{
 use crate::store::Store;
 use crate::types::pagination::{extraction_pagination, Pagination};
 use crate::types::question::{NewQuestion, UpdateQuestion};
+use crate::types::user::AuthUser;
 
 fn validate_question_fields(title: &str, content: &str) -> Result<(), Error> {
     if title.trim().is_empty() {
@@ -63,6 +64,7 @@ pub async fn get_answers(id: i32, store: Store) -> Result<impl Reply, Rejection>
 }
 
 pub async fn add_question(
+    user: AuthUser,
     store: Store,
     new_question: NewQuestion,
 ) -> Result<impl Reply, Rejection> {
@@ -74,7 +76,7 @@ pub async fn add_question(
         tags: new_question.tags,
     };
 
-    match store.add_question(new_question).await {
+    match store.add_question(new_question, user.id).await {
         Ok(question) => Ok(reply::with_status(
             reply::json(&question),
             StatusCode::CREATED,
@@ -85,10 +87,16 @@ pub async fn add_question(
 
 pub async fn update_question(
     id: i32,
+    user: AuthUser,
     store: Store,
     question: UpdateQuestion,
 ) -> Result<impl Reply, Rejection> {
     validate_question_fields(&question.title, &question.content).map_err(custom)?;
+
+    let existing = store.get_question(id).await.map_err(custom)?;
+    if !user.can_modify(existing.author_id) {
+        return Err(custom(Error::Forbidden));
+    }
 
     let question = UpdateQuestion {
         title: question.title.trim().to_string(),
@@ -102,7 +110,16 @@ pub async fn update_question(
     }
 }
 
-pub async fn delete_question(id: i32, store: Store) -> Result<impl Reply, Rejection> {
+pub async fn delete_question(
+    id: i32,
+    user: AuthUser,
+    store: Store,
+) -> Result<impl Reply, Rejection> {
+    let existing = store.get_question(id).await.map_err(custom)?;
+    if !user.can_modify(existing.author_id) {
+        return Err(custom(Error::Forbidden));
+    }
+
     match store.delete_question(id).await {
         Ok(true) => Ok(reply::with_status(
             format!("Question {} deleted", id),
