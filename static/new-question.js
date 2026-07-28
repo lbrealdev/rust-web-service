@@ -23,17 +23,17 @@
   });
 })();
 
-/* === Auth gate (#65) ================================================ */
+/* === Auth gate ====================================================== */
 
-if (localStorage.getItem('loggedIn') !== 'true') {
-  sessionStorage.setItem('flash', 'login required to create a question.');
+if (!isLoggedIn()) {
+  sessionStorage.setItem('flash', 'login or continue with a token to create a question.');
   window.location.replace('/');
 }
 
 /* === Create form ==================================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
-  if (localStorage.getItem('loggedIn') !== 'true') {
+  if (!isLoggedIn()) {
     return;
   }
 
@@ -56,17 +56,14 @@ document.addEventListener('DOMContentLoaded', () => {
     errorEl.classList.add('hidden');
 
     try {
-      const response = await fetch('/questions', {
+      const response = await apiFetch('/questions', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
         body: JSON.stringify({ title, content, tags })
       });
 
       if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(data.message || 'failed to create question');
+        const text = await response.text();
+        throw new Error(text || 'failed to create question');
       }
 
       window.location.href = '/';

@@ -5,7 +5,7 @@
 Database must be running before the server starts. Migrations run automatically on startup.
 
 ```
-cp .env.example .env   # required: DATABASE_URL + ADMIN_PASSWORD
+cp .env.example .env   # required: DATABASE_URL + BOOTSTRAP_ADMIN_PASSWORD (or ADMIN_PASSWORD)
 just db-up             # docker run postgres
 just sqlx-migrate      # sqlx migrate run (optional; also runs on boot)
 just server            # alias for `just run`; cargo run
@@ -42,8 +42,9 @@ just fmt && just lint && just test
 
 - PostgreSQL container started via `just db-up` (container name: `postgresql`)
 - Connection string from env: `DATABASE_URL` (see `.env.example`)
-- Credentials in `.env`: `POSTGRES_USER`, `POSTGRES_PASSWORD`, `DATABASE_URL`, `ADMIN_PASSWORD`
+- Credentials in `.env`: `POSTGRES_USER`, `POSTGRES_PASSWORD`, `DATABASE_URL`, `BOOTSTRAP_ADMIN_USERNAME` / `BOOTSTRAP_ADMIN_PASSWORD` (or legacy `ADMIN_PASSWORD`)
 - Optional: `DB_POOL_MAX` (default `5`), `RUST_LOG`
+- Auth design notes: [`docs/auth-design.md`](docs/auth-design.md)
 - Migrations embedded via `sqlx::migrate!()` and run automatically on startup in `main.rs`
 - Migration files live in `migrations/`
 
@@ -67,11 +68,12 @@ just fmt && just lint && just test
 
 ## Authentication
 
-- `ADMIN_PASSWORD` is required at process start (no default)
-- Login state stored in `localStorage` (`loggedIn` key)
-- UI shows create/edit/delete when logged in; create page redirects to `/` if logged out (flash message on home)
+- Multi-user auth (Phase A): anonymous read-only; `token` users (sign-in token); `user` / `admin` (username + password)
+- Bootstrap first admin from `BOOTSTRAP_ADMIN_*` (or `ADMIN_PASSWORD`) when none exists
+- Mutating APIs require `Authorization: Bearer <session>`; ownership enforced (admin can modify any)
+- Frontend stores `sessionToken` + `authUser` in `localStorage` (see `static/auth.js`)
+- Design notes and Stacker News / Routstr references: [`docs/auth-design.md`](docs/auth-design.md)
 
-### Known gaps
+### Later
 
-- **No server-side API auth** — mutating endpoints are publicly callable without credentials; UI gating is cosmetic only (tracked as #63)
-- Do not treat client-side `localStorage` as security
+- Moderator role, Nostr login method, httpOnly cookies (see auth-design roadmap)

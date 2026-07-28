@@ -18,8 +18,12 @@ async fn main() {
         .and_then(|v| v.parse::<u32>().ok())
         .unwrap_or(5);
 
-    // Fail fast if admin password is missing
-    let _ = std::env::var("ADMIN_PASSWORD").expect("ADMIN_PASSWORD must be set");
+    let bootstrap_username = std::env::var("BOOTSTRAP_ADMIN_USERNAME")
+        .or_else(|_| std::env::var("ADMIN_USERNAME"))
+        .unwrap_or_else(|_| "admin".into());
+    let bootstrap_password = std::env::var("BOOTSTRAP_ADMIN_PASSWORD")
+        .or_else(|_| std::env::var("ADMIN_PASSWORD"))
+        .expect("BOOTSTRAP_ADMIN_PASSWORD or ADMIN_PASSWORD must be set");
 
     let store = store::Store::new(&database_url, max_connections).await;
 
@@ -28,19 +32,20 @@ async fn main() {
         .await
         .expect("Cannot run migration");
 
+    store
+        .ensure_bootstrap_admin(&bootstrap_username, &bootstrap_password)
+        .await
+        .expect("Cannot bootstrap admin user");
+
     tracing_subscriber::fmt()
-        // Use the filter we built above to determine which traces to record.
         .with_env_filter(log_filter)
-        // Record an event when each span closes.
-        // This can be used to time our
-        // routes' durations!
         .with_span_events(FmtSpan::CLOSE)
         .init();
 
     // Scope CORS to known origins so arbitrary websites cannot make API calls.
     let cors = warp::cors()
         .allow_origins(["http://127.0.0.1:3030", "http://localhost:3030"])
-        .allow_header("content-type")
+        .allow_headers(vec!["content-type", "authorization"])
         .allow_methods(&[
             Method::GET,
             Method::POST,

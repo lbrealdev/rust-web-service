@@ -66,8 +66,11 @@ function getQuestionId() {
   return id ? Number(id) : NaN;
 }
 
-function isLoggedIn() {
-  return localStorage.getItem('loggedIn') === 'true';
+function canModify(authorId) {
+  const me = getAuthUser();
+  if (!isLoggedIn() || !me) return false;
+  if (me.role === 'admin') return true;
+  return me.id === authorId;
 }
 
 function setEditMode(editing) {
@@ -110,7 +113,7 @@ function renderQuestion(question) {
   }
 
   const editBtn = document.getElementById('edit-question-btn');
-  if (isLoggedIn()) {
+  if (canModify(question.author_id)) {
     editBtn.classList.remove('hidden');
   } else {
     editBtn.classList.add('hidden');
@@ -154,7 +157,7 @@ function renderAnswers(answers, questionId) {
     body.appendChild(content);
     li.appendChild(body);
 
-    if (isLoggedIn()) {
+    if (canModify(answer.author_id)) {
       const delBtn = document.createElement('button');
       delBtn.textContent = 'delete';
       delBtn.className = 'button button-delete';
@@ -163,7 +166,7 @@ function renderAnswers(answers, questionId) {
         if (!confirmed) return;
 
         try {
-          const res = await fetch(`/answers/${answer.id}`, { method: 'DELETE' });
+          const res = await apiFetch(`/answers/${answer.id}`, { method: 'DELETE' });
           if (!res.ok) {
             showAlert(`failed to delete answer #${answer.id}.`);
             return;
@@ -211,9 +214,8 @@ async function loadQuestion(id) {
 }
 
 async function submitAnswer(id, content) {
-  const res = await fetch('/answers', {
+  const res = await apiFetch('/answers', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ content, question_id: id })
   });
 
@@ -224,9 +226,8 @@ async function submitAnswer(id, content) {
 }
 
 async function updateQuestion(id, payload) {
-  const res = await fetch(`/questions/${id}`, {
+  const res = await apiFetch(`/questions/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
   });
 

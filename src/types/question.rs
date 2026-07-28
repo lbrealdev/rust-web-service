@@ -8,6 +8,8 @@ pub struct Question {
     pub title: String,
     pub content: String,
     pub tags: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub author_id: Option<i32>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Eq, Hash, Clone, PartialEq)]
