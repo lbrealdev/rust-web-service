@@ -37,10 +37,17 @@ async fn main() {
         .with_span_events(FmtSpan::CLOSE)
         .init();
 
+    // Scope CORS to known origins so arbitrary websites cannot make API calls.
     let cors = warp::cors()
-        .allow_any_origin()
+        .allow_origins(["http://127.0.0.1:3030", "http://localhost:3030"])
         .allow_header("content-type")
-        .allow_methods(&[Method::PUT, Method::DELETE, Method::GET, Method::POST]);
+        .allow_methods(&[
+            Method::GET,
+            Method::POST,
+            Method::PUT,
+            Method::DELETE,
+            Method::OPTIONS,
+        ]);
 
     let index = warp::path::end().and(warp::fs::file("static/index.html"));
     let static_files = warp::fs::dir("static");
