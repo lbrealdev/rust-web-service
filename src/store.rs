@@ -45,6 +45,17 @@ fn map_question_row(row: PgRow) -> Question {
         content: row.get("content"),
         tags: row.get("tags"),
         author_id: row.get("author_id"),
+        created_on: row.get("created_on"),
+    }
+}
+
+fn map_answer_row(row: PgRow) -> Answer {
+    Answer {
+        id: AnswerId(row.get("id")),
+        content: row.get("content"),
+        question_id: QuestionId(row.get("question_id")),
+        author_id: row.get("author_id"),
+        created_on: row.get("created_on"),
     }
 }
 
@@ -247,7 +258,7 @@ impl Store {
         offset: i32,
     ) -> Result<Vec<Question>, Error> {
         match sqlx::query(
-            "SELECT id, title, content, tags, author_id FROM questions LIMIT $1 OFFSET $2",
+            "SELECT id, title, content, tags, author_id, created_on FROM questions LIMIT $1 OFFSET $2",
         )
         .bind(limit)
         .bind(offset)
@@ -261,11 +272,13 @@ impl Store {
     }
 
     pub async fn get_question(&self, question_id: i32) -> Result<Question, Error> {
-        match sqlx::query("SELECT id, title, content, tags, author_id FROM questions WHERE id = $1")
-            .bind(question_id)
-            .map(map_question_row)
-            .fetch_one(&self.connection)
-            .await
+        match sqlx::query(
+            "SELECT id, title, content, tags, author_id, created_on FROM questions WHERE id = $1",
+        )
+        .bind(question_id)
+        .map(map_question_row)
+        .fetch_one(&self.connection)
+        .await
         {
             Ok(question) => Ok(question),
             Err(e) => Err(map_db_error(e)),
@@ -280,7 +293,7 @@ impl Store {
         match sqlx::query(
             "INSERT INTO questions (title, content, tags, author_id)
             VALUES ($1, $2, $3, $4)
-            RETURNING id, title, content, tags, author_id",
+            RETURNING id, title, content, tags, author_id, created_on",
         )
         .bind(new_question.title)
         .bind(new_question.content)
@@ -304,7 +317,7 @@ impl Store {
             "UPDATE questions
             SET title = $1, content = $2, tags = $3
             WHERE id = $4
-            RETURNING id, title, content, tags, author_id",
+            RETURNING id, title, content, tags, author_id, created_on",
         )
         .bind(question.title)
         .bind(question.content)
@@ -332,15 +345,10 @@ impl Store {
 
     pub async fn get_answers(&self, question_id: i32) -> Result<Vec<Answer>, Error> {
         match sqlx::query(
-            "SELECT id, content, question_id, author_id FROM answers WHERE question_id = $1 ORDER BY id",
+            "SELECT id, content, question_id, author_id, created_on FROM answers WHERE question_id = $1 ORDER BY id",
         )
         .bind(question_id)
-        .map(|row: PgRow| Answer {
-            id: AnswerId(row.get("id")),
-            content: row.get("content"),
-            question_id: QuestionId(row.get("question_id")),
-            author_id: row.get("author_id"),
-        })
+        .map(map_answer_row)
         .fetch_all(&self.connection)
         .await
         {
@@ -350,16 +358,13 @@ impl Store {
     }
 
     pub async fn get_answer(&self, answer_id: i32) -> Result<Answer, Error> {
-        match sqlx::query("SELECT id, content, question_id, author_id FROM answers WHERE id = $1")
-            .bind(answer_id)
-            .map(|row: PgRow| Answer {
-                id: AnswerId(row.get("id")),
-                content: row.get("content"),
-                question_id: QuestionId(row.get("question_id")),
-                author_id: row.get("author_id"),
-            })
-            .fetch_one(&self.connection)
-            .await
+        match sqlx::query(
+            "SELECT id, content, question_id, author_id, created_on FROM answers WHERE id = $1",
+        )
+        .bind(answer_id)
+        .map(map_answer_row)
+        .fetch_one(&self.connection)
+        .await
         {
             Ok(answer) => Ok(answer),
             Err(e) => Err(map_db_error(e)),
@@ -370,17 +375,12 @@ impl Store {
         match sqlx::query(
             "INSERT INTO answers (content, question_id, author_id)
             VALUES ($1, $2, $3)
-            RETURNING id, content, question_id, author_id",
+            RETURNING id, content, question_id, author_id, created_on",
         )
         .bind(new_answer.content)
         .bind(new_answer.question_id.0)
         .bind(author_id)
-        .map(|row: PgRow| Answer {
-            id: AnswerId(row.get("id")),
-            content: row.get("content"),
-            question_id: QuestionId(row.get("question_id")),
-            author_id: row.get("author_id"),
-        })
+        .map(map_answer_row)
         .fetch_one(&self.connection)
         .await
         {
