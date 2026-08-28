@@ -8,6 +8,7 @@ Database must be running before the server starts. Migrations run automatically 
 cp .env.example .env   # required: DATABASE_URL + BOOTSTRAP_ADMIN_PASSWORD (or ADMIN_PASSWORD)
 just db-up             # docker run postgres
 just sqlx-migrate      # sqlx migrate run (optional; also runs on boot)
+just seed              # load sample questions from questions.json (optional; idempotent)
 just server            # alias for `just run`; cargo run
 ```
 
@@ -19,6 +20,7 @@ The server binds to `http://127.0.0.1:3030`.
 - `just test` — `cargo test` (unit tests; no DB required)
 - `just test-filter FILTER` — `cargo test FILTER`
 - `just test-db` — ignored DB integration tests (requires Postgres + `DATABASE_URL`)
+- `just seed` — insert sample questions from `questions.json` (idempotent by title; requires DB)
 - `just lint` — `cargo clippy`
 - `just fmt` — `cargo fmt`
 - `just watch` — `watchexec` auto-restart on file change

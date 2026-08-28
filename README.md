@@ -10,6 +10,7 @@ Copy [`.env.example`](.env.example) to `.env` and adjust values as needed:
 cp .env.example .env
 just db-up          # start PostgreSQL container
 just sqlx-migrate   # run migrations
+just seed           # insert sample questions from questions.json (optional)
 just server         # start the server on http://127.0.0.1:3030
 ```
 
