@@ -22,7 +22,7 @@ Required env vars (see `.env.example`):
 | `BOOTSTRAP_ADMIN_PASSWORD` | First admin password (or legacy `ADMIN_PASSWORD`) |
 | `DB_POOL_MAX` | Max DB pool size (optional, default `5`) |
 | `RUST_LOG` | Tracing filter (optional) |
-| `POSTGRES_USER` / `POSTGRES_PASSWORD` | Used by `just db-up` / migrate recipes |
+| `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | Used by Docker Compose (`just db-up`) and migrate recipes |
 
 ## Endpoints
 
@@ -74,7 +74,7 @@ just fmt && just lint && just test
 |-------|------------|
 | HTTP framework | Warp |
 | Async runtime | Tokio |
-| Database | PostgreSQL (via Docker) |
+| Database | PostgreSQL (Docker Compose, named volume) |
 | ORM/Migrations | SQLx |
 | Error handling | Local crate `handle-errors/` |
 | Frontend | Vanilla HTML/CSS/JS in `static/` |
@@ -95,9 +95,12 @@ docs/              API documentation
 
 ## Setup database
 
+PostgreSQL runs via Docker Compose (`compose.yml`) with a named volume (`pgdata`) so data survives `just db-down`.
+
 ```sh
-docker pull postgres
 cp .env.example .env
-just db-up
+just db-up          # docker compose up -d --wait
 just sqlx-migrate
 ```
+
+`just db-down` stops the container but keeps the volume. Wipe the database with `just sqlx-db-reset`.

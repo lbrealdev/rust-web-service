@@ -6,7 +6,7 @@ Database must be running before the server starts. Migrations run automatically 
 
 ```
 cp .env.example .env   # required: DATABASE_URL + BOOTSTRAP_ADMIN_PASSWORD (or ADMIN_PASSWORD)
-just db-up             # docker run postgres
+just db-up             # docker compose up (Postgres + named volume)
 just sqlx-migrate      # sqlx migrate run (optional; also runs on boot)
 just server            # alias for `just run`; cargo run
 ```
@@ -40,9 +40,11 @@ just fmt && just lint && just test
 
 ## Database
 
-- PostgreSQL container started via `just db-up` (container name: `postgresql`)
+- PostgreSQL via Docker Compose (`compose.yml`); `just db-up` / `just db-down`
+- Named volume `pgdata` persists data across container restarts; `just sqlx-db-reset` wipes it
+- Container name: `postgresql`
 - Connection string from env: `DATABASE_URL` (see `.env.example`)
-- Credentials in `.env`: `POSTGRES_USER`, `POSTGRES_PASSWORD`, `DATABASE_URL`, `BOOTSTRAP_ADMIN_USERNAME` / `BOOTSTRAP_ADMIN_PASSWORD` (or legacy `ADMIN_PASSWORD`)
+- Credentials in `.env`: `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `DATABASE_URL`, `BOOTSTRAP_ADMIN_USERNAME` / `BOOTSTRAP_ADMIN_PASSWORD` (or legacy `ADMIN_PASSWORD`)
 - Optional: `DB_POOL_MAX` (default `5`), `RUST_LOG`
 - Auth design notes: [`docs/auth-design.md`](docs/auth-design.md)
 - Migrations embedded via `sqlx::migrate!()` and run automatically on startup in `main.rs`
