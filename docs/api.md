@@ -253,6 +253,47 @@ Content-Type: application/json
 
 ---
 
+### Update Answer
+
+```
+PUT /answers/:id
+Content-Type: application/json
+```
+
+**Path Parameters**
+
+| Param | Type | Description |
+|-------|------|-------------|
+| `id`  | i32  | Answer ID   |
+
+**Request Body**
+
+| Field     | Type   | Required | Description    |
+|-----------|--------|----------|----------------|
+| `content` | string | Yes      | Updated answer |
+
+```json
+{
+  "content": "Updated answer text"
+}
+```
+
+**Response** `200 OK`
+
+```json
+{
+  "id": 1,
+  "content": "Updated answer text",
+  "question_id": 1
+}
+```
+
+**Response** `400 Bad Request` — empty `content`
+
+**Response** `404 Not Found` — answer does not exist
+
+---
+
 ### Delete Answer
 
 ```

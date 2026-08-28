@@ -136,6 +136,23 @@ pub fn api(store: Store) -> impl Filter<Extract = (impl Reply,), Error = Rejecti
             )
         }));
 
+    let update_answer = warp::put()
+        .and(warp::path("answers"))
+        .and(warp::path::param::<i32>())
+        .and(warp::path::end())
+        .and(auth.clone())
+        .and(store_filter.clone())
+        .and(warp::body::json())
+        .and_then(super::answer::update_answer)
+        .with(warp::trace(|info| {
+            tracing::info_span!(
+                "update_answer request",
+                method = %info.method(),
+                path = %info.path(),
+                id = %uuid::Uuid::new_v4(),
+            )
+        }));
+
     let register = warp::post()
         .and(warp::path("register"))
         .and(warp::path::end())
@@ -219,6 +236,7 @@ pub fn api(store: Store) -> impl Filter<Extract = (impl Reply,), Error = Rejecti
         .or(add_question)
         .or(update_question)
         .or(add_answer)
+        .or(update_answer)
         .or(delete_answer)
         .or(register)
         .or(login)

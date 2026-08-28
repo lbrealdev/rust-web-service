@@ -2,7 +2,7 @@ use handle_errors::Error;
 use warp::{http::StatusCode, reject::custom, reply, Rejection, Reply};
 
 use crate::store::Store;
-use crate::types::answer::NewAnswer;
+use crate::types::answer::{NewAnswer, UpdateAnswer};
 use crate::types::user::AuthUser;
 
 pub async fn add_answer(
@@ -26,6 +26,33 @@ pub async fn add_answer(
             reply::json(&answer),
             StatusCode::CREATED,
         )),
+        Err(e) => Err(custom(e)),
+    }
+}
+
+pub async fn update_answer(
+    id: i32,
+    user: AuthUser,
+    store: Store,
+    answer: UpdateAnswer,
+) -> Result<impl Reply, Rejection> {
+    if answer.content.trim().is_empty() {
+        return Err(custom(Error::ValidationError(
+            "content must not be empty".to_string(),
+        )));
+    }
+
+    let existing = store.get_answer(id).await.map_err(custom)?;
+    if !user.can_modify(existing.author_id) {
+        return Err(custom(Error::Forbidden));
+    }
+
+    let answer = UpdateAnswer {
+        content: answer.content.trim().to_string(),
+    };
+
+    match store.update_answer(answer, id).await {
+        Ok(res) => Ok(reply::json(&res)),
         Err(e) => Err(custom(e)),
     }
 }

@@ -3,7 +3,7 @@ use sqlx::Row;
 
 use crate::auth_crypto::{hash_password, hash_token, verify_password};
 use crate::types::{
-    answer::{Answer, AnswerId, NewAnswer},
+    answer::{Answer, AnswerId, NewAnswer, UpdateAnswer},
     question::{NewQuestion, Question, QuestionId, UpdateQuestion},
     user::{AuthUser, UserRole},
 };
@@ -375,6 +375,33 @@ impl Store {
         .bind(new_answer.content)
         .bind(new_answer.question_id.0)
         .bind(author_id)
+        .map(|row: PgRow| Answer {
+            id: AnswerId(row.get("id")),
+            content: row.get("content"),
+            question_id: QuestionId(row.get("question_id")),
+            author_id: row.get("author_id"),
+        })
+        .fetch_one(&self.connection)
+        .await
+        {
+            Ok(answer) => Ok(answer),
+            Err(e) => Err(map_db_error(e)),
+        }
+    }
+
+    pub async fn update_answer(
+        &self,
+        answer: UpdateAnswer,
+        answer_id: i32,
+    ) -> Result<Answer, Error> {
+        match sqlx::query(
+            "UPDATE answers
+            SET content = $1
+            WHERE id = $2
+            RETURNING id, content, question_id, author_id",
+        )
+        .bind(answer.content)
+        .bind(answer_id)
         .map(|row: PgRow| Answer {
             id: AnswerId(row.get("id")),
             content: row.get("content"),
