@@ -59,16 +59,13 @@ alias sqlx-status := sqlx-migrate-info
 @watch:
     watchexec -e rs,js,css,html just server
 
-# docker
+# docker compose (named volume `pgdata` persists data across `db-down`)
 
 @docker-psql-up:
-    echo "Creating container {{ container }}..."
-    docker run -d --name {{ container }} -e POSTGRES_USER=$POSTGRES_USER -e POSTGRES_PASSWORD=$POSTGRES_PASSWORD -p 5432:5432 {{ image }}
+    docker compose up -d --wait
 
 @docker-psql-down:
-    echo "Removing container {{ container }}..."
-    docker stop {{ container }}
-    docker rm {{ container }}
+    docker compose down
 
 # sqlx
 
@@ -95,9 +92,8 @@ alias sqlx-status := sqlx-migrate-info
     sqlx migrate run -D postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@{{ db_ip }}:5432/{{ db_name }}
 
 @sqlx-db-reset:
-    just db-down
+    docker compose down -v
     just db-up
-    sleep 3
     just sqlx-migrate
 
 @sqlx-run:
