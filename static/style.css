@@ -339,6 +339,28 @@ form .form-error {
   border-bottom: none;
 }
 
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.pagination .button {
+  flex: 0 0 auto;
+}
+
+#page-info {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  text-align: center;
+}
+
 .question-info {
   flex: 1;
   min-width: 0;
@@ -501,6 +523,11 @@ a.question-title:hover {
 
   .form-actions {
     flex-direction: column;
+  }
+
+  .pagination {
+    flex-wrap: wrap;
+    justify-content: center;
   }
 
   .modal-content {
