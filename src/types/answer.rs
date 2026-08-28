@@ -9,6 +9,7 @@ pub struct Answer {
     pub question_id: QuestionId,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub author_id: Option<i32>,
+    pub created_on: chrono::NaiveDateTime,
 }
 
 #[derive(Debug, Deserialize, Serialize, Eq, Hash, Clone, PartialEq)]

@@ -48,7 +48,8 @@ GET /questions?limit=10&offset=0
     "id": 1,
     "title": "How?",
     "content": "Please help!",
-    "tags": ["general", "help"]
+    "tags": ["general", "help"],
+    "created_on": "2026-08-28T12:00:00"
   }
 ]
 ```
@@ -74,7 +75,8 @@ GET /questions/:id
   "id": 1,
   "title": "How?",
   "content": "Please help!",
-  "tags": ["general"]
+  "tags": ["general"],
+  "created_on": "2026-08-28T12:00:00"
 }
 ```
 
@@ -101,7 +103,8 @@ GET /questions/:id/answers
   {
     "id": 1,
     "content": "Try this…",
-    "question_id": 1
+    "question_id": 1,
+    "created_on": "2026-08-28T12:00:00"
   }
 ]
 ```
@@ -138,7 +141,8 @@ Content-Type: application/json
   "id": 1,
   "title": "New question",
   "content": "How does this work?",
-  "tags": ["rust", "warp"]
+  "tags": ["rust", "warp"],
+  "created_on": "2026-08-28T12:00:00"
 }
 ```
 
@@ -184,7 +188,8 @@ The question id comes from the path only (not the body).
   "id": 1,
   "title": "Updated title",
   "content": "Updated content",
-  "tags": ["updated"]
+  "tags": ["updated"],
+  "created_on": "2026-08-28T12:00:00"
 }
 ```
 
@@ -245,7 +250,8 @@ Content-Type: application/json
 {
   "id": 1,
   "content": "Only run things!!!",
-  "question_id": 1
+  "question_id": 1,
+  "created_on": "2026-08-28T12:00:00"
 }
 ```
 
