@@ -27,6 +27,7 @@ The server binds to `http://127.0.0.1:3030`.
 
 - Unit tests cover `extraction_pagination` and `handle-errors` (no Postgres).
 - Use `just test` (workspace) or e.g. `just test-filter pagination` / `just test-filter handle`.
+- CI sets `SQLX_OFFLINE=true` (also in `.cargo/config.toml`). Runtime `sqlx::query()` does not need `.sqlx/`; if you switch to `query!`, run `just sqlx-prepare` and commit `.sqlx/`.
 - DB-backed store + Warp API tests live in `tests/integration.rs` and are `#[ignore]`d by default.
 - Run them with Postgres up and `.env` loaded: `just db-up && just sqlx-migrate && just test-db`
   (or any reachable `DATABASE_URL`; tests migrate on connect and clean up created rows).
