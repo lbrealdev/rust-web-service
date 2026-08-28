@@ -1,0 +1,4 @@
+[env]
+# Compile-time `query!` macros read `.sqlx/` instead of a live database.
+# Refresh with `just sqlx-prepare` after changing those queries.
+SQLX_OFFLINE = "true"

@@ -112,3 +112,6 @@ alias sqlx-status := sqlx-migrate-info
 
 @sqlx-migrate-revert:
     sqlx migrate revert -D postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@{{ db_ip }}:5432/{{ db_name }}
+
+@sqlx-prepare:
+    cargo sqlx prepare

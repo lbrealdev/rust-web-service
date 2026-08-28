@@ -68,6 +68,8 @@ Before committing:
 just fmt && just lint && just test
 ```
 
+CI (GitHub Actions) runs the same checks with `SQLX_OFFLINE=true` so builds do not need a live database. After changing compile-time `sqlx::query!` macros, refresh the cache with `just sqlx-prepare` (requires `sqlx-cli` and Postgres) and commit `.sqlx/`.
+
 ## Architecture
 
 | Layer | Technology |
