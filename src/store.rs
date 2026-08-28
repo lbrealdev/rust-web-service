@@ -241,11 +241,7 @@ impl Store {
         Ok(())
     }
 
-    pub async fn get_questions(
-        &self,
-        limit: Option<i32>,
-        offset: i32,
-    ) -> Result<Vec<Question>, Error> {
+    pub async fn get_questions(&self, limit: i32, offset: i32) -> Result<Vec<Question>, Error> {
         match sqlx::query(
             "SELECT id, title, content, tags, author_id FROM questions LIMIT $1 OFFSET $2",
         )

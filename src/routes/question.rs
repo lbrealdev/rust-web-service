@@ -9,7 +9,7 @@ use warp::{
 };
 
 use crate::store::Store;
-use crate::types::pagination::{extraction_pagination, Pagination};
+use crate::types::pagination::extraction_pagination;
 use crate::types::question::{NewQuestion, UpdateQuestion};
 use crate::types::user::AuthUser;
 
@@ -33,12 +33,10 @@ pub async fn get_questions(
     store: Store,
 ) -> Result<impl Reply, Rejection> {
     event!(target: "web-service", Level::INFO, "querying questions");
-    let mut pagination = Pagination::default();
-
     if !params.is_empty() {
         event!(Level::INFO, pagination = true);
-        pagination = extraction_pagination(params)?;
     }
+    let pagination = extraction_pagination(params)?;
 
     match store
         .get_questions(pagination.limit, pagination.offset)

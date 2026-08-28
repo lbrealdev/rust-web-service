@@ -35,10 +35,10 @@ GET /questions?limit=10&offset=0
 
 **Query Parameters**
 
-| Param    | Type | Default | Description          |
-|----------|------|---------|----------------------|
-| `limit`  | i32  | —       | Max items (requires `offset`) |
-| `offset` | i32  | 0       | Starting index       |
+| Param    | Type | Default | Description                                      |
+|----------|------|---------|--------------------------------------------------|
+| `limit`  | i32  | 100     | Max items (optional; independent of `offset`; capped at 100) |
+| `offset` | i32  | 0       | Number of items to skip (optional)               |
 
 **Response** `200 OK`
 
