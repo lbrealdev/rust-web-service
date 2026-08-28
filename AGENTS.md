@@ -19,7 +19,11 @@ The server binds to `http://127.0.0.1:3030`.
 - `just test` — `cargo test` (unit tests; no DB required)
 - `just test-filter FILTER` — `cargo test FILTER`
 - `just test-db` — ignored DB integration tests (requires Postgres + `DATABASE_URL`)
-- `just lint` — `cargo clippy`
+- `just check` — `cargo check --workspace`
+- `just build` — `cargo build --workspace --release`
+- `just clean` — `cargo clean`
+- `just update` — `cargo update`
+- `just lint` — `cargo clippy --workspace`
 - `just fmt` — `cargo fmt`
 - `just watch` — `watchexec` auto-restart on file change
 

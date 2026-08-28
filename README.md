@@ -56,10 +56,15 @@ See [docs/auth-design.md](docs/auth-design.md) for roles, Stacker News / Routstr
 ## Dev commands
 
 ```sh
-just lint    # cargo clippy
-just fmt     # cargo fmt
-just test    # cargo test
-just watch   # auto-restart on file change
+just lint         # cargo clippy --workspace
+just fmt          # cargo fmt
+just test         # cargo test --workspace (unit tests; no DB)
+just test-filter FILTER
+just check        # cargo check --workspace
+just build        # cargo build --workspace --release
+just clean        # cargo clean
+just update       # cargo update
+just watch        # auto-restart on file change
 ```
 
 Before committing:

@@ -6,25 +6,12 @@ set dotenv-load := true
 
 image := 'postgres'
 container := 'postgresql'
-db_name := 'rustwebdev'
-
-db_ip := ```
-    psql=$(docker ps -a | grep postgres)
-    if [ -z "$psql" ]; then
-        echo "Container is not running!"
-    else
-        docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' postgresql
-    fi
- ```
-
-docker_ip := if db_ip == "Container is not running!" { "false" } else { "true" }
 
 # Alias
 
 alias server := run
 alias db-up := docker-psql-up
 alias db-down := docker-psql-down
-#alias sqlx-create := sqlx-database-create
 alias sqlx-migrate := sqlx-migrate-run
 alias sqlx-status := sqlx-migrate-info
 
@@ -38,6 +25,18 @@ alias sqlx-status := sqlx-migrate-info
 @run:
     cargo run
 
+@check:
+    cargo check --workspace
+
+@build:
+    cargo build --workspace --release
+
+@clean:
+    cargo clean
+
+@update:
+    cargo update
+
 @test:
     cargo test --workspace
 
@@ -49,7 +48,7 @@ alias sqlx-status := sqlx-migrate-info
     cargo test --test integration -- --ignored --test-threads=1
 
 @lint:
-    cargo clippy
+    cargo clippy --workspace
 
 @fmt:
     cargo fmt
@@ -70,29 +69,14 @@ alias sqlx-status := sqlx-migrate-info
     docker stop {{ container }}
     docker rm {{ container }}
 
-# sqlx
+# sqlx (uses DATABASE_URL from .env)
 
-# @sqlx-database-create:
-#     if {{ docker_ip }}; then \
-#         sqlx database create -D postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@{{ db_ip }}:5432/{{ db_name }}; \
-#     else \
-#         echo "IP does not exist!"; \
-#     fi
-
-@_sqlx-database-create:
-    echo "Creating {{ db_name }} database"
-    sqlx database create -D postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@{{ db_ip }}:5432/{{ db_name }}
-
-@sqlx-migrate-add:
-    sqlx migrate add -r questions_table
-    sleep 1
-    sqlx migrate add -r answers_table
+@sqlx-migrate-add NAME:
+    sqlx migrate add -r {{NAME}}
 
 @sqlx-migrate-run:
-    echo "Running migrations..."
-    sleep 3
-    just _sqlx-database-create
-    sqlx migrate run -D postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@{{ db_ip }}:5432/{{ db_name }}
+    sqlx database create
+    sqlx migrate run
 
 @sqlx-db-reset:
     just db-down
@@ -100,15 +84,8 @@ alias sqlx-status := sqlx-migrate-info
     sleep 3
     just sqlx-migrate
 
-@sqlx-run:
-    echo '{{ if db_ip == "Container is not running!" { "Error!" } else { `just sqlx-migrate` } }}'
-
 @sqlx-migrate-info:
-    if {{ docker_ip }}; then \
-        sqlx migrate info -D postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@{{ db_ip }}:5432/{{ db_name }}; \
-    else \
-        echo "IP does not exist!"; \
-    fi
+    sqlx migrate info
 
 @sqlx-migrate-revert:
-    sqlx migrate revert -D postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@{{ db_ip }}:5432/{{ db_name }}
+    sqlx migrate revert
