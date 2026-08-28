@@ -19,3 +19,8 @@ pub struct NewAnswer {
     pub content: String,
     pub question_id: QuestionId,
 }
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct UpdateAnswer {
+    pub content: String,
+}

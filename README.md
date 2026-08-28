@@ -35,6 +35,7 @@ Required env vars (see `.env.example`):
 | PUT | `/questions/:id` | Update question (auth + ownership) |
 | DELETE | `/questions/:id` | Delete question (auth + ownership; cascades answers) |
 | POST | `/answers` | Add answer (`201` + JSON; auth required) |
+| PUT | `/answers/:id` | Update answer (auth + ownership) |
 | DELETE | `/answers/:id` | Delete answer (auth + ownership) |
 | POST | `/register` | Create full `user` account |
 | POST | `/login` | Login with username/password or `sign_in_token` |

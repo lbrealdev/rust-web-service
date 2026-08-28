@@ -236,3 +236,106 @@ async fn bootstrap_admin_role() {
         .expect("admin login");
     assert_eq!(user.role, UserRole::Admin);
 }
+
+#[tokio::test]
+#[ignore = "requires Postgres; run with just test-db"]
+async fn api_update_answer_auth_and_ownership() {
+    let store = test_store().await;
+    let routes = api(store.clone()).recover(return_error);
+    let (auth, _) = guest_session(&store).await;
+
+    let create_q = warp::test::request()
+        .method("POST")
+        .path("/questions")
+        .header("content-type", "application/json")
+        .header("authorization", &auth)
+        .json(&serde_json::json!({
+            "title": "question for answers",
+            "content": "body",
+            "tags": null
+        }))
+        .reply(&routes)
+        .await;
+    assert_eq!(create_q.status(), StatusCode::CREATED);
+    let question: Question = serde_json::from_slice(create_q.body()).unwrap();
+    let qid = question.id.0;
+
+    let create_a = warp::test::request()
+        .method("POST")
+        .path("/answers")
+        .header("content-type", "application/json")
+        .header("authorization", &auth)
+        .json(&serde_json::json!({
+            "content": "original answer",
+            "question_id": qid
+        }))
+        .reply(&routes)
+        .await;
+    assert_eq!(create_a.status(), StatusCode::CREATED);
+    let created: Value = serde_json::from_slice(create_a.body()).unwrap();
+    let aid = created["id"].as_i64().unwrap();
+
+    let listed = warp::test::request()
+        .method("GET")
+        .path(&format!("/questions/{qid}/answers"))
+        .reply(&routes)
+        .await;
+    assert_eq!(listed.status(), StatusCode::OK);
+    let answers: Vec<Value> = serde_json::from_slice(listed.body()).unwrap();
+    assert_eq!(answers.len(), 1);
+    assert_eq!(answers[0]["content"], "original answer");
+
+    let updated = warp::test::request()
+        .method("PUT")
+        .path(&format!("/answers/{aid}"))
+        .header("content-type", "application/json")
+        .header("authorization", &auth)
+        .json(&serde_json::json!({ "content": "  edited answer  " }))
+        .reply(&routes)
+        .await;
+    assert_eq!(updated.status(), StatusCode::OK);
+    let body: Value = serde_json::from_slice(updated.body()).unwrap();
+    assert_eq!(body["content"], "edited answer");
+
+    let empty = warp::test::request()
+        .method("PUT")
+        .path(&format!("/answers/{aid}"))
+        .header("content-type", "application/json")
+        .header("authorization", &auth)
+        .json(&serde_json::json!({ "content": "   " }))
+        .reply(&routes)
+        .await;
+    assert_eq!(empty.status(), StatusCode::BAD_REQUEST);
+
+    let unauth = warp::test::request()
+        .method("PUT")
+        .path(&format!("/answers/{aid}"))
+        .header("content-type", "application/json")
+        .json(&serde_json::json!({ "content": "nope" }))
+        .reply(&routes)
+        .await;
+    assert_eq!(unauth.status(), StatusCode::UNAUTHORIZED);
+
+    let (other, _) = guest_session(&store).await;
+    let forbidden = warp::test::request()
+        .method("PUT")
+        .path(&format!("/answers/{aid}"))
+        .header("content-type", "application/json")
+        .header("authorization", &other)
+        .json(&serde_json::json!({ "content": "stolen" }))
+        .reply(&routes)
+        .await;
+    assert_eq!(forbidden.status(), StatusCode::FORBIDDEN);
+
+    let missing = warp::test::request()
+        .method("PUT")
+        .path("/answers/2147483647")
+        .header("content-type", "application/json")
+        .header("authorization", &auth)
+        .json(&serde_json::json!({ "content": "gone" }))
+        .reply(&routes)
+        .await;
+    assert_eq!(missing.status(), StatusCode::NOT_FOUND);
+
+    cleanup_question(&store, qid).await;
+}
