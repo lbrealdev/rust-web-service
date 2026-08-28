@@ -28,7 +28,7 @@ Required env vars (see `.env.example`):
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/questions` | List questions (`?limit=&offset=`) |
+| GET | `/questions` | List questions (`?limit=` default 100, `?offset=` default 0) |
 | GET | `/questions/:id` | Get a single question |
 | GET | `/questions/:id/answers` | List answers for a question |
 | POST | `/questions` | Create question (`201` + JSON; auth required) |
