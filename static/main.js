@@ -224,10 +224,59 @@ function updateAuthUI() {
   }
 }
 
-function loadQuestions() {
-  fetch('/questions')
+const PAGE_SIZE = 10;
+let currentPage = 1;
+
+function pageFromUrl() {
+  const n = Number(new URLSearchParams(window.location.search).get('page') || '1');
+  return Number.isInteger(n) && n > 0 ? n : 1;
+}
+
+function setPageInUrl(page) {
+  const url = new URL(window.location.href);
+  if (page <= 1) {
+    url.searchParams.delete('page');
+  } else {
+    url.searchParams.set('page', String(page));
+  }
+  history.replaceState(null, '', url);
+}
+
+function renderPagination(page, count) {
+  const nav = document.getElementById('pagination');
+  const info = document.getElementById('page-info');
+  const prev = document.getElementById('page-prev');
+  const next = document.getElementById('page-next');
+  if (!nav || !info || !prev || !next) return;
+
+  const hasPrev = page > 1;
+  const hasNext = count === PAGE_SIZE;
+  if (!hasPrev && !hasNext) {
+    nav.classList.add('hidden');
+    return;
+  }
+
+  nav.classList.remove('hidden');
+  const start = (page - 1) * PAGE_SIZE + (count > 0 ? 1 : 0);
+  const end = (page - 1) * PAGE_SIZE + count;
+  info.textContent = count > 0 ? `page ${page} · ${start}–${end}` : `page ${page}`;
+  prev.disabled = !hasPrev;
+  next.disabled = !hasNext;
+}
+
+function loadQuestions(page = currentPage) {
+  currentPage = page < 1 ? 1 : page;
+  setPageInUrl(currentPage);
+  const offset = (currentPage - 1) * PAGE_SIZE;
+
+  fetch(`/questions?limit=${PAGE_SIZE}&offset=${offset}`)
     .then((res) => res.json())
     .then((questions) => {
+      if (currentPage > 1 && (!questions || questions.length === 0)) {
+        loadQuestions(currentPage - 1);
+        return;
+      }
+
       const list = document.getElementById('questions-list');
       list.innerHTML = '';
 
@@ -236,6 +285,7 @@ function loadQuestions() {
         emptyLi.className = 'empty-state';
         emptyLi.textContent = 'no questions yet. be the first.';
         list.appendChild(emptyLi);
+        renderPagination(currentPage, 0);
         return;
       }
 
@@ -283,7 +333,7 @@ function loadQuestions() {
                 .then((res) => {
                   if (res.ok) {
                     showAlert(`question #${q.id} deleted.`);
-                    loadQuestions();
+                    loadQuestions(currentPage);
                   } else if (res.status === 401) {
                     updateAuthUI();
                     showAlert('session expired — please log in again.');
@@ -300,6 +350,8 @@ function loadQuestions() {
 
         list.appendChild(li);
       });
+
+      renderPagination(currentPage, questions.length);
     })
     .catch((err) => {
       console.error('error loading questions:', err);
@@ -311,7 +363,21 @@ function loadQuestions() {
 
 document.addEventListener('DOMContentLoaded', () => {
   updateAuthUI();
-  loadQuestions();
+  currentPage = pageFromUrl();
+  loadQuestions(currentPage);
+
+  const prev = document.getElementById('page-prev');
+  const next = document.getElementById('page-next');
+  if (prev) {
+    prev.addEventListener('click', () => {
+      if (currentPage > 1) loadQuestions(currentPage - 1);
+    });
+  }
+  if (next) {
+    next.addEventListener('click', () => {
+      loadQuestions(currentPage + 1);
+    });
+  }
 
   const flash = sessionStorage.getItem('flash');
   if (flash) {
