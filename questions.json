@@ -1,8 +1,20 @@
 {
-    "1" : {
-      "id": "1",
-      "title": "How?",
-      "content": "Please help!",
-      "tags": ["general"] 
-    }
+  "1": {
+    "id": "1",
+    "title": "How?",
+    "content": "Please help!",
+    "tags": ["general"]
+  },
+  "2": {
+    "id": "2",
+    "title": "What is Warp?",
+    "content": "How do I compose filters in Warp to build a JSON API?",
+    "tags": ["rust", "warp"]
+  },
+  "3": {
+    "id": "3",
+    "title": "SQLx migrations",
+    "content": "Where should I put PostgreSQL migrations for this service?",
+    "tags": ["sqlx", "postgres"]
+  }
 }

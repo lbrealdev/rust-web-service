@@ -48,6 +48,9 @@ alias sqlx-status := sqlx-migrate-info
 @test-db:
     cargo test --test integration -- --ignored --test-threads=1
 
+@seed:
+    cargo run --bin seed -- questions.json
+
 @lint:
     cargo clippy
 
